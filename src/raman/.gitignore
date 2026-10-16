@@ -1,0 +1,8 @@
+.deps
+*.o
+polarizability
+response
+response
+spectrum
+Makefile
+Makefile.in

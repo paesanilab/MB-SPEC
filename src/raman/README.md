@@ -1,0 +1,412 @@
+# Raman spectra with MB-SPEC
+
+The Raman workflow calculates correlations of the total polarizability tensor
+and their reduced Raman spectra. It consists of three executables:
+
+1. `polarizability`: construct the total water polarizability tensor for each trajectory frame;
+2. `response`: calculate its isotropic or depolarized autocorrelation; and
+3. `spectrum`: Fourier transform the response and apply the current Raman frequency factor.
+
+Run the stages in order:
+
+```bash
+OMP_NUM_THREADS=4 ./polarizability trajectory.lammpstrj mb-spec.json > polarizability.dat
+./response polarizability.dat mb-spec.json > response.dat
+./spectrum response.dat mb-spec.json > spectrum.dat
+```
+
+## Units
+
+| Quantity | Unit / convention |
+|---|---|
+| Coordinates | Å |
+| Time | ps |
+| Polarizabilities | Å³ |
+| Polarizability correlations | Å⁶ |
+| Temperature | K |
+| Transform frequency $\nu$, angular frequency $\omega$ | ps⁻¹ and rad/ps |
+| Wavenumber $\widetilde\nu$, smoothing FWHM | cm⁻¹ |
+| Raman intensity | Arbitrary units |
+
+
+## Outputs
+
+| File | Columns, in order |
+|---|---|
+| `polarizability.dat` | Time [ps], αxx, αxy, αxz, αyy, αyz, αzz [Å³] |
+| `response.dat` | Lag time [ps], selected polarizability correlation [Å⁶] |
+| `spectrum.dat` | Wavenumber [cm⁻¹], reduced or Bose–Einstein-corrected Raman intensity [arbitrary units] |
+| `molecular_polarizabilities.dat` (optional) | Molecule index, time [ps], αxx, αxy, αxz, αyx, αyy, αyz, αzx, αzy, αzz [Å³] |
+
+
+## JSON options
+
+Put all settings inside `RAMAN`. 
+**Remove the `//` comments before saving this JSONC example as an input JSON file.**
+
+```jsonc
+{
+  "RAMAN": {
+    "box": [0.0,19.65,0.0,19.65,0.0,19.65],	    // Required cell bounds in Å; XYZ imaging; spectrum requires positive volume 
+    "imcon": 2,                                 // Cell convention: 1 cubic, 2 orthorhombic (default), 3 triclinic
+    "dump_frequency": 0.004,                    // Required frame interval in ps
+    "skip_initial_atoms": 0,                    // Omit leading atom records; retain O–H–H triplets; default 0
+    "trajectory_duration_ps": 0.0,              // Duration read in ps; 0 reads all frames (default)
+    "int_max": 10.0,                            // Required exclusive correlation lag limit in ps
+    "temperature": 300.0,                       // Required temperature in K; sets reduced Raman frequency factor
+    "spectrum_transform_time_ps": 5.0,          // Required response duration transformed, in ps
+    "tau": 0.0,                                 // Exponential damping time in ps; 0 disables it (default)
+    "smoothing_fwhm_cm1": 15.0,                 // Gaussian spectral FWHM in cm⁻¹; omitted or 0 disables it
+    "subtract_mean_polarizability": true,       // Remove mean tensor before correlation; default false
+    "write_molecular_properties": false,        // Write molecular tensors; only with 1b; default false
+    "raman_response": "depolarized",            // Choose "isotropic" or "depolarized"; default isotropic
+    "bose_einstein_correction": false,           // Output I_BE instead of I when true; default false
+    "polarizability_mb": "1b",                  // Required decomposition; see Polarizability below
+    "cutoff_1": 5.5,                            // Inner O–O switching radius in Å; default 5.5
+    "cutoff_2": 7.5                             // Outer O–O switching radius in Å; default 7.5
+  }
+}
+```
+
+For `box`, six values are `[xmin,xmax,ymin,ymax,zmin,zmax]`; triclinic cells
+use nine matrix elements `[xx,xy,xz,yx,yy,yz,zx,zy,zz]`.
+Triclinic cells (`imcon=3`) are allowed only for the internal `1b` and
+`1b+2b` modes. The `nb`, `1b+nb`, and `1b+2b+nb` modes reject them because
+their internal NB model assumes orthorhombic cell lengths. This restriction
+applies to both XYZ and LAMMPS inputs. Externally calculated polarizability
+tensors can instead be supplied directly to `response`.
+
+## Trajectory input
+
+`polarizability` accepts LAMMPS or an XYZ trajectory. For LAMMPS, the
+reader identifies coordinates from the `ITEM: ATOMS` header and accepts exactly
+one complete triplet of `x y z`, `xu yu zu`, `xs ys zs`, or `xsu ysu zsu`.
+XYZ frames contain an atom count, one comment line,
+and atom-label/x/y/z rows; 
+Water atoms must be ordered O--H--H in every frame.
+
+The internal `polarizability` is specific to water. For other molecular
+systems, supply a total symmetric polarizability tensor for each frame directly
+to `response`, then run `spectrum`. The external file must contain exactly seven
+numeric columns per row, without a header:
+
+```text
+time_ps alpha_xx alpha_xy alpha_xz alpha_yy alpha_yz alpha_zz
+```
+
+
+## Polarizability
+
+Raman scattering probes changes in the polarizability of a system. The
+polarizability tensor relates an applied electric field to the resulting
+induced dipole. MB-SPEC uses the total system tensor,
+$\boldsymbol\alpha(t)$, expressed in the laboratory Cartesian frame.
+
+For water, the many-body expansion separates isolated-molecule contributions
+from changes caused by interactions between molecules:
+
+$$
+\boldsymbol\alpha_{\mathrm{tot}}(1,\ldots,N)=
+\sum_i\boldsymbol\alpha_{\mathrm{1B}}(i)
++\sum_{i<j}\boldsymbol\alpha_{\mathrm{2B}}(i,j)+\cdots.
+\tag{1}
+$$
+
+The MB-alpha surface uses the Avila one-body polarizability, a short-range
+polynomial correction for water dimers, and TTM4-Ind induction.
+Its two-body term is
+
+$$
+\boldsymbol\alpha_{\mathrm{2B}}(i,j)=
+s(r_{ij})\boldsymbol\alpha_{\mathrm{2B,poly}}(i,j)
++\boldsymbol\alpha_{\mathrm{2B,ind}}(i,j).
+\tag{2}
+$$
+
+The polynomial is fitted as a correction to the TTM4-Ind polarizability.
+Consequently, the full induced two-body term is retained when the polynomial
+is added.
+
+### Available water decompositions
+
+To describe the implemented modes, define
+
+$$
+A=\sum_i\boldsymbol\alpha_{\mathrm{1B}}^{\mathrm{Avila}}(i),\qquad
+T=\boldsymbol\alpha^{\mathrm{TTM4}}(1,\ldots,N),
+\tag{3}
+$$
+
+$$
+T_1=\sum_i\boldsymbol\alpha^{\mathrm{TTM4}}_{\mathrm{1B}}(i),\qquad
+P_\alpha=\sum_{i<j}s(r_{ij})\boldsymbol\alpha_{\mathrm{2B,poly}}(i,j).
+\tag{4}
+$$
+
+For the truncated `1b+2b` mode, define the switched induction increment
+
+$$
+J_\alpha=\sum_{i<j}s(r_{ij})
+\left[\boldsymbol\alpha^{\mathrm{TTM4}}(i,j)
+-\boldsymbol\alpha^{\mathrm{TTM4}}(i)
+-\boldsymbol\alpha^{\mathrm{TTM4}}(j)\right].
+$$
+
+Each dimer and monomer tensor in this expression is evaluated in isolation.
+Subtracting the monomer tensors removes the TTM one-body contribution.
+
+Here, $T$ is the total-system TTM4 tensor and $T_1$ is the sum of
+isolated-monomer TTM4 tensors. Their difference, $T-T_1$, is the nonadditive
+induction contribution, including two-body and higher-body terms.
+
+| `polarizability_mb` | Total tensor per frame | Contributions |
+|---|---|---|
+| `1b` | $A$ | Avila one-body |
+| `nb` | $T-T_1$ | TTM4 nonadditive |
+| `1b+nb` | $A+T-T_1$ | Avila one-body + nonadditive |
+| `1b+2b` | $A+P_\alpha+J_\alpha$ | Avila one-body + smoothly truncated complete pair contribution |
+| `1b+2b+nb` | $A+P_\alpha+T-T_1$ | Avila one-body + switched 2B polynomial + nonadditive |
+
+The full combination replaces the TTM4 monomer tensors with Avila tensors
+and adds the polynomial correction. The `1b+2b` mode includes the polynomial
+and isolated-pair induction, switching both to zero at the outer cutoff. It
+excludes higher-body induction. This deliberately truncated approximation
+differs from the published MB-alpha two-body term in Eq. (2), which retains
+long-range induction [Medders and Paesani (2015), Section 2, Eq. (11)](../../literature/ct501131j.pdf).
+It also changes the previous `1b+2b` behavior, which included only the switched
+polynomial. Cutoff convergence should be checked for the system and spectrum
+of interest.
+
+### Two-body switching
+
+Pair contributions are summed over unique water dimers. The switching
+function depends on the O–O distance $r$, with inner radius
+$R_i=\texttt{cutoff\_1}$ and outer radius $R_o=\texttt{cutoff\_2}$:
+
+$$
+s(r)=\begin{cases}
+1,&r\le R_i,\\
+1+x^2(2x-3),&R_i<r<R_o,\\
+0,&r\ge R_o,
+\end{cases}
+\qquad x=\frac{r-R_i}{R_o-R_i}.
+\tag{5}
+$$
+
+The default radii are 5.5 and 7.5 Å. In `1b+2b`, the same switch multiplies
+both the polynomial and the TTM pair increment: both have full weight below
+5.5 Å, taper smoothly between 5.5 and 7.5 Å, and vanish at and beyond 7.5 Å.
+Only pairs inside the outer cutoff require dimer evaluations; isolated TTM
+monomer tensors are calculated once per frame. In `1b+2b+nb`, only the
+polynomial is switched; the existing full-system induction is retained.
+
+## Polarizability autocorrelation
+
+The isotropic part of the total tensor describes the average response to an
+electric field along the three Cartesian directions. The remaining,
+traceless tensor describes its directional anisotropy:
+
+$$
+\alpha_{\mathrm{iso}}(t)=\frac13\operatorname{Tr}\boldsymbol\alpha(t),\qquad
+\boldsymbol\beta(t)=\boldsymbol\alpha(t)-\alpha_{\mathrm{iso}}(t)\mathbf I,
+\tag{6}
+$$
+
+where $\mathbf I$ is the identity tensor. These quantities give the two
+correlations supported by `response`:
+
+$$
+C_{\mathrm{iso}}(t)=
+\left\langle\alpha_{\mathrm{iso}}(0)\alpha_{\mathrm{iso}}(t)\right\rangle,
+\qquad
+C_{\mathrm{dep}}(t)=
+\left\langle\operatorname{Tr}[\boldsymbol\beta(0)\boldsymbol\beta(t)]\right\rangle.
+\tag{7}
+$$
+
+The isotropic correlation tracks
+the scalar part of the polarizability; the depolarized correlation tracks
+its anisotropic part, which contributes to depolarized Raman scattering.
+
+For $N$ equally spaced frames, `response` estimates the equilibrium average
+using every available pair separated by $k\Delta t$:
+
+$$
+C_{\mathrm{iso}}(k\Delta t)=\frac1{N-k}\sum_{i=0}^{N-k-1}
+\alpha_{\mathrm{iso}}(t_i)\alpha_{\mathrm{iso}}(t_{i+k}),
+\tag{8}
+$$
+
+$$
+C_{\mathrm{dep}}(k\Delta t)=\frac1{N-k}\sum_{i=0}^{N-k-1}
+\operatorname{Tr}[\boldsymbol\beta(t_i)\boldsymbol\beta(t_{i+k})].
+\tag{9}
+$$
+
+Each lag is normalized by its own number of time origins, $N-k$.
+For a symmetric tensor, the trace in Eq. (9) sums the three diagonal
+products and twice each of the three independent off-diagonal products.
+
+If `subtract_mean_polarizability` is enabled, the correlations use
+fluctuations about the trajectory-average tensor:
+
+$$
+\langle\boldsymbol\alpha\rangle_{\mathrm{traj}}=
+\frac1N\sum_{i=0}^{N-1}\boldsymbol\alpha(t_i),\qquad
+\delta\boldsymbol\alpha(t_i)=
+\boldsymbol\alpha(t_i)-\langle\boldsymbol\alpha\rangle_{\mathrm{traj}}.
+\tag{10}
+$$
+
+In this case, replace $\boldsymbol\alpha$ in Eq. (6) by
+$\delta\boldsymbol\alpha$ before forming the correlations. 
+
+## Fourier transform and Raman spectrum
+
+The Fourier transform resolves the time dependence of the selected
+polarizability correlation into frequency components. With $C(t)$ denoting
+either correlation in Eq. (7), the continuous convention is
+
+$$
+\widetilde C(\omega)=\int_{-\infty}^{\infty}
+C(t)e^{-i\omega t}\,dt.
+\tag{11}
+$$
+
+For an equilibrium autocorrelation, $C(-t)=C(t)$, so positive lag times
+suffice for a cosine transform:
+
+$$
+\widetilde C(\omega)=2\int_0^\infty C(t)\cos(\omega t)\,dt.
+\tag{12}
+$$
+
+A reduced Raman spectrum also includes a frequency-dependent
+factor involving temperature and the incident laser frequency. MB-SPEC
+applies the following form to both response types, defining the reduced
+intensity $I(\widetilde\nu)$ before Gaussian smoothing:
+
+$$
+I(\widetilde\nu)=
+\mathcal A\,\frac{\widetilde\nu}{(\widetilde\nu_I-\widetilde\nu)^4}
+\tanh\left(\frac{\hbar\,2\pi c\widetilde\nu}{2k_BT}\right)
+S(\widetilde\nu).
+\tag{13}
+$$
+
+Here, $\widetilde\nu$ is the Raman-shift wavenumber in cm⁻¹,
+$\widetilde\nu_I=20500\;\mathrm{cm}^{-1}$ is the fixed incident laser
+wavenumber, $c$ is the speed of light in cm/s, $T$ is the
+temperature, $k_B$ is the Boltzmann constant, and $\hbar$ is the reduced
+Planck constant.
+$\mathcal A$ is a frequency-independent constant setting the arbitrary intensity scale.
+$S$ is the finite cosine transform defined below.
+
+Set `bose_einstein_correction` to `true` to output the Bose–Einstein-corrected
+spectrum $I_{\mathrm{BE}}(\widetilde\nu)$, following
+[Iuchi, Morita, and Kato (2002), Eq. (26)](https://doi.org/10.1021/jp013773y):
+
+$$
+I_{\mathrm{BE}}(\widetilde\nu)=
+\frac{I(\widetilde\nu)}{2\pi c\widetilde\nu},
+$$
+
+where $I$ is defined in Eq. (13) and $2\pi c\widetilde\nu$ is the angular
+frequency in rad/s, using $c$ in cm/s. The correction applies to
+either response type before Gaussian smoothing. The zero-frequency output is
+set to zero, the limiting value for a finite transformed correlation.
+Omitting this option or setting it to `false` retains Eq. (13).
+The output remains two columns: wavenumber in cm⁻¹ and the selected intensity
+in arbitrary units.
+
+The output is reported in arbitrary units, with no volume prefactor or absolute cross-section
+normalization. A positive JSON cell volume is nevertheless required by
+`spectrum`.
+
+### Spectral processing
+
+A finite trajectory supplies discrete correlation samples over a limited
+duration. `int_max` sets the exclusive lag limit; `spectrum_transform_time_ps`
+selects the response duration used for the transform and must satisfy
+`0 < spectrum_transform_time_ps <= int_max`. If `trajectory_duration_ps`
+is nonzero, `int_max` must also not exceed that duration. At least four
+response rows below `int_max` and two transformed samples are required.
+
+Exponential damping acts on the correlation before Fourier transformation.
+For $C_k=C(k\Delta t)$, the samples used by the transform are
+
+$$
+D_k=C_k
+\begin{cases}
+\exp(-k\Delta t/\tau),&\tau>0,\\
+1,&\tau=0.
+\end{cases}
+\tag{14}
+$$
+
+Damping suppresses long-time contributions and broadens spectral features;
+$\Delta t$ and `tau` are both in ps. Both response types use the correlation
+without additional constant scaling. Removing the previous division by ten
+increases output intensities by a factor of ten without changing spectral shapes.
+
+For transform duration $T_{\mathrm{transform}}$, the sample count is
+
+$$
+N_T=\left\lfloor\frac{T_{\mathrm{transform}}}{\Delta t}+10^{-10}\right\rfloor,
+\qquad T_{\mathrm{transform}}=\texttt{spectrum\_transform\_time\_ps}.
+\tag{15}
+$$
+
+The small dimensionless offset prevents rounding just below an integer from
+dropping a sample. MB-SPEC evaluates
+
+$$
+S(\widetilde\nu_n)=2\Delta t\left[
+\frac12D_0+\sum_{k=1}^{N_T-2}D_k
+\cos(2\pi c_{\mathrm{cm/ps}}\widetilde\nu_n k\Delta t)\right],
+\tag{16}
+$$
+
+on the grid
+
+$$
+\Delta\nu=\frac1{(2N_T-1)\Delta t},\qquad
+\nu_n=n\Delta\nu,\qquad\omega_n=2\pi\nu_n,\qquad
+\widetilde\nu_n=\nu_n/c_{\mathrm{cm/ps}},
+\quad n=0,\ldots,N_T-1.
+\tag{17}
+$$
+
+Here $c_{\mathrm{cm/ps}}$ is the speed of light in cm/ps. Time remains in ps
+throughout the transform, so $S$ has units Å⁶·ps.
+The last selected sample, $D_{N_T-1}$, is excluded from the sum; the
+implementation assumes the correlation has decayed to zero at the upper
+integration limit.
+
+Gaussian smoothing acts on the selected intensity, $I$ or $I_{\mathrm{BE}}$.
+A positive
+`smoothing_fwhm_cm1` sets its full width at half maximum (FWHM) in cm⁻¹;
+omission or zero disables it. For FWHM $w$ and wavenumber spacing
+$\Delta\widetilde\nu$, the kernel width and length are
+
+$$
+\sigma_{\mathrm{grid}}=\frac{w}{2\sqrt{2\ln2}\,\Delta\widetilde\nu},
+\qquad K=2\left\lceil3\sigma_{\mathrm{grid}}\right\rceil+1,
+\tag{18}
+$$
+
+$$
+g_j=\frac{\exp[-(j-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)]}
+{\sum_{m=0}^{K-1}\exp[-(m-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)]}.
+\tag{19}
+$$
+
+The Gaussian is truncated at three standard deviations. 
+
+## Scientific limitations
+
+**Periodic induction.** For NB-containing water modes, $T$ in Eq. (3) is
+evaluated with the internal cell-dependent TTM4 response. That response
+uses only diagonal cell lengths for imaging and assumes an orthorhombic
+cell; `polarizability` rejects `imcon=3` for these modes. It has no Ewald
+treatment, and these modes are not validated for periodic bulk simulations.

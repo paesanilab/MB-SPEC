@@ -1,7 +1,7 @@
 # MB-SPEC
 
 MB-SPEC calculates vibrational spectra from molecular dynamics trajectories, including those generated with MB-pol and other MB-nrg models. It supports infrared (IR), Raman, sum-frequency generation (SFG), and velocity power spectra. 
-For water, MB-SPEC includes built-in many-body dipole moment (MB-$\mu$) and polarizability (MB-$\alpha$) surfaces that can be applied to compatible trajectories generated with any potential energy surface.
+For water, MB-SPEC includes built-in many-body dipole moment (MB-$`\mu`$) and polarizability (MB-$`\alpha`$) surfaces that can be applied to compatible trajectories generated with any potential energy surface.
 
 ## Build
 

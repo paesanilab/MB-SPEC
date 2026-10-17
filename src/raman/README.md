@@ -339,7 +339,7 @@ For transform duration $T_{\mathrm{transform}}$, the sample count is
 
 $$
 N_T=\left\lfloor\frac{T_{\mathrm{transform}}}{\Delta t}+10^{-10}\right\rfloor,
-\qquad T_{\mathrm{transform}}=\texttt{spectrum\_transform\_time\_ps}.
+\qquad T_{\mathrm{transform}}=\mathrm{spectrum\_transform\_time\_ps}.
 $$
 
 The small dimensionless offset prevents rounding just below an integer from

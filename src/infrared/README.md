@@ -110,7 +110,6 @@ The permanent and induced dipole moments are summed over atoms as:
 $$
 \mathbf M_{\mathrm{perm}}=\sum_a\boldsymbol\mu_a^{\mathrm{perm}},
 \qquad\mathbf M_{\mathrm{ind}}=\sum_a\boldsymbol\mu_a^{\mathrm{ind}}.
-\tag{1}
 $$
 
 The switched polynomial $P$ and induced replacement $I$ are defined for unique water dimers as:
@@ -123,7 +122,6 @@ $$
 $$
 I\equiv\Delta\mathbf M_{\mathrm{2B,ind}}
 =\sum_{i\lt j}s(r_{ij})\boldsymbol\mu_{ij}^{\mathrm{2B,ind}}.
-\tag{3}
 $$
 
 The short-range polynomial dipole is constructed from effective charges on
@@ -148,7 +146,6 @@ s(r)=\begin{cases}
 0,&r\ge R_o,
 \end{cases}
 \qquad x=\frac{r-R_i}{R_o-R_i}.
-\tag{4}
 $$
 
 The full two-body term is
@@ -157,7 +154,6 @@ $$
 \boldsymbol\mu_{ij}^{\mathrm{2B}}
 =s(r_{ij})\boldsymbol\mu_{ij}^{\mathrm{2B,poly}}
 +[1-s(r_{ij})]\boldsymbol\mu_{ij}^{\mathrm{2B,ind}}.
-\tag{5}
 $$
 
 With higher-body induction,
@@ -168,7 +164,6 @@ $$
 +\sum_{i\lt j}\left[s(r_{ij})\boldsymbol\mu_{ij}^{\mathrm{2B,poly}}
 +(1-s(r_{ij}))\boldsymbol\mu_{ij}^{\mathrm{2B,ind}}\right]
 +\mathbf M_{\mathrm{higher}}^{\mathrm{ind}}.
-\tag{6}
 $$
 
 The full `1b+2b+nb` route implements
@@ -177,7 +172,6 @@ $$
 \mathbf M_{\mathrm{MB-\mu}}=\mathbf M_{\mathrm{perm}}+\mathbf M_{\mathrm{ind}}
 +\sum_{i\lt j}s(r_{ij})\left[\boldsymbol\mu_{ij}^{\mathrm{2B,poly}}
 -\boldsymbol\mu_{ij}^{\mathrm{2B,ind}}\right].
-\tag{7}
 $$
 
 
@@ -193,7 +187,6 @@ The equilibrium total-dipole autocorrelation function is
 
 $$
 C(t)=\left\langle\mathbf M(0)\cdot\mathbf M(t)\right\rangle.
-\tag{8}
 $$
 
 The brackets denote an equilibrium average, and the dot product sums the
@@ -207,7 +200,6 @@ this average using every available pair of frames separated by $k\Delta t$:
 $$
 C(k\Delta t)=\frac1{N-k}\sum_{i=0}^{N-k-1}
 \mathbf M(t_i)\cdot\mathbf M(t_{i+k}).
-\tag{9}
 $$
 
 Each lag is normalized by its own number of available time origins, $N-k$.
@@ -220,7 +212,6 @@ $\delta\mathbf M$:
 $$
 \overline{\mathbf M}=\frac1N\sum_{i=0}^{N-1}\mathbf M(t_i),
 \qquad\delta\mathbf M(t_i)=\mathbf M(t_i)-\overline{\mathbf M}.
-\tag{10}
 $$
 
 ## Fourier transform and IR spectrum
@@ -230,7 +221,6 @@ The frequency-domain dipole correlation is defined by
 $$
 \widetilde C(\omega)=\int_{-\infty}^{\infty}
 C(t)e^{-i\omega t}\,dt.
-\tag{11}
 $$
 
 For an equilibrium autocorrelation function, $C(-t)=C(t)$, so the transform
@@ -238,7 +228,6 @@ can be evaluated from positive lag times using a cosine transform:
 
 $$
 \widetilde C(\omega)=2\int_0^\infty C(t)\cos(\omega t)\,dt.
-\tag{12}
 $$
 
 MB-SPEC converts the transformed correlation into the infrared
@@ -248,7 +237,6 @@ $$
 n(\omega)\alpha(\omega)=
 \frac{\beta\omega^2}{6\epsilon_0cV}\widetilde C(\omega),
 \qquad\beta=\frac1{k_BT}.
-\tag{13}
 $$
 
 where 
@@ -274,7 +262,6 @@ $$
 \widetilde C_n=\Delta t\left[C_0+2\sum_{k=1}^{N_T-1}
 C_k\cos\left(\frac{2\pi nk}{2N_T-1}\right)\right],
 \qquad C_k=C(k\Delta t).
-\tag{14}
 $$
 
 The corresponding frequency grid is
@@ -283,7 +270,6 @@ $$
 \Delta\nu=\frac1{(2N_T-1)\Delta t},\qquad
 \nu_n=n\Delta\nu,\qquad\omega_n=2\pi\nu_n,
 \qquad n=0,\ldots,N_T-1.
-\tag{15}
 $$
 
 Two optional processing steps affect the resulting spectrum. 
@@ -291,7 +277,6 @@ Two optional processing steps affect the resulting spectrum.
 
 $$
 C_k\leftarrow C_k\exp\left(-\frac{k\Delta t}{\tau}\right).
-\tag{17}
 $$
 
 2. Gaussian smoothing acts on the completed spectrum. 
@@ -303,11 +288,9 @@ $\Delta\widetilde\nu$, the kernel width $\sigma_{\mathrm{grid}}$, length $K$, an
 $$
 \sigma_{\mathrm{grid}}=\frac{w}{2\sqrt{2\ln2}\,\Delta\widetilde\nu},
 \qquad K=2\left\lceil3\sigma_{\mathrm{grid}}\right\rceil+1.
-\tag{21}
 $$
 
 $$
 g_j=\frac{\exp\left[-(j-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}
 {\sum_{m=0}^{K-1}\exp\left[-(m-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}.
-\tag{22}
 $$

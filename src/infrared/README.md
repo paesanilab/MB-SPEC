@@ -118,7 +118,6 @@ The switched polynomial $P$ and induced replacement $I$ are defined for unique w
 $$
 P\equiv\Delta\mathbf M_{\mathrm{2B,poly}}
 =\sum_{i\lt j}s(r_{ij})\boldsymbol\mu_{ij}^{\mathrm{2B,poly}},
-\tag{2}
 $$
 
 $$

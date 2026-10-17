@@ -204,8 +204,8 @@ Frames contain contiguous O–H–H water triplets. Molecular oxygen coordinates
 $$
 g(z)=\begin{cases}
 0,&|z|\lt z_1,\\
-\operatorname{sgn}(z)\cos^2\left[\frac{\pi(|z|-z_2)}{2(z_1-z_2)}\right],&z_1\le|z|\le z_2,\\
-\operatorname{sgn}(z),&|z|\gt z_2.
+\mathrm{sgn}(z)\cos^2\left[\frac{\pi(|z|-z_2)}{2(z_1-z_2)}\right],&z_1\le|z|\le z_2,\\
+\mathrm{sgn}(z),&|z|\gt z_2.
 \end{cases}
 $$
 
@@ -358,8 +358,8 @@ The Gaussian is truncated at three standard deviations. Only positive-frequency 
 The resonant SFG expression in Medders and Paesani [3, Eq. 1] is
 
 $$
-\operatorname{Im}\chi_{ijk}^{(2,R)}(\omega)=
-\operatorname{Im}\left[\frac{i\omega}{k_BT}\int_0^\infty dt\,
+\mathrm{Im}\chi_{ijk}^{(2,R)}(\omega)=
+\mathrm{Im}\left[\frac{i\omega}{k_BT}\int_0^\infty dt\,
  e^{-i\omega t}\langle\alpha_{ij}(t)\mu_k(0)\rangle\right].
 $$
 

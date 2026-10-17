@@ -48,7 +48,7 @@ Optionally apply Fresnel factors after calculating the component spectra:
 
 ## JSON options
 
-Put molecular-response and spectrum settings inside `SFG`.
+Put all settings inside `SFG`.
 **Remove the `//` comments before saving this JSONC example as an input file.**
 
 ```jsonc
@@ -88,14 +88,13 @@ Put molecular-response and spectrum settings inside `SFG`.
 ```
 
 Both external dipole triplets remain
-required even with `use_ps_dipole=true`. Use the explicit `dipole_mb` and
-`polarizability_mb` keys; the legacy `mb` key does not select models.
+required even with `use_ps_dipole=true`. 
 The 4500 cm⁻¹ upper limit exceeds the approximately
 4169 cm⁻¹ Nyquist limit at 4 fs sampling. 
 
 ## Trajectory input
 
-response accepts one LAMMPS dump trajectory.
+`response` accepts one LAMMPS dump trajectory.
 The reader identifies fields from the `ITEM: ATOMS` header.
 It requires exactly one coordinate triplet of `x y z`, `xu yu zu`, `xs ys zs`, or `xsu ysu zsu`;
 scaled coordinates are converted with the LAMMPS box matrix and origin.
@@ -144,9 +143,7 @@ $$
 
 The monomer subtraction avoids counting one-body polarizabilities twice.
 Isolated TTM monomer tensors are cached once per frame. The polynomial is an
-additive correction to this TTM pair increment, as defined in
-[Medders and Paesani (2015), Section 2, Eq. (11)](../../literature/ct501131j.pdf).
-
+additive correction to this TTM pair increment.
 There is no internal nonadditive-polarizability mode. Both external dipole
 triplets remain required for every decomposition.
 
@@ -178,26 +175,11 @@ radius (default 5.5 Å), taper smoothly to zero at the outer radius (default
 7.5 Å), and are omitted at and beyond that radius. This changes the previous
 polynomial-only option. It matches Raman's smoothly truncated `1b+2b`
 definition, excludes higher-body induction, and differs from the published
-MB-alpha model, which retains long-range pair induction. Cutoff convergence
-must be assessed for the interface and spectrum of interest. Dipole
-decompositions are unchanged.
+MB-alpha model, which retains long-range pair induction.
 
 ## Dipole-polarizability correlation
 
 ### Interface weights and tensor selection
-
-Use `imcon=3` for a triclinic LAMMPS cell. Imaging uses the full cell matrix
-and its inverse with componentwise fractional-coordinate wrapping. This
-restores the existing triclinic path; it does not establish shortest-image
-correctness for arbitrary strongly skewed cells. Interface weights and tensor
-components are defined relative to laboratory axes, with the slab normal along
-laboratory z. A tilted cell does not automatically rotate the interface normal.
-
-SFG response calculations require explicit `zc1` and `zc2` values in Å,
-both finite and satisfying `0\le zc1\lt zc2`. There are no default interface
-distances: choose them for the slab geometry. Missing or invalid bounds stop
-the calculation before the trajectory is read. These settings are not required
-when transforming an existing response with the SFG spectrum program.
 
 Frames contain contiguous O–H–H water triplets. Molecular oxygen coordinates are $\mathbf r_a$ with laboratory coordinate $z_a$, after optional periodic reimaging and mass-weighted slab centering (O mass 15.999, H mass 1.008). For $z_1=\mathrm{zc1}$, $z_2=\mathrm{zc2}$, and $0\le z_1\lt z_2$,
 

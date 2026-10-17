@@ -199,17 +199,17 @@ distances: choose them for the slab geometry. Missing or invalid bounds stop
 the calculation before the trajectory is read. These settings are not required
 when transforming an existing response with the SFG spectrum program.
 
-Frames contain contiguous O–H–H water triplets. Molecular oxygen coordinates are $\mathbf r_a$ with laboratory coordinate $z_a$, after optional periodic reimaging and mass-weighted slab centering (O mass 15.999, H mass 1.008). For $z_1=\texttt{zc1}$, $z_2=\texttt{zc2}$, and $0\le z_1\lt z_2$,
+Frames contain contiguous O–H–H water triplets. Molecular oxygen coordinates are $\mathbf r_a$ with laboratory coordinate $z_a$, after optional periodic reimaging and mass-weighted slab centering (O mass 15.999, H mass 1.008). For $z_1=\mathrm{zc1}$, $z_2=\mathrm{zc2}$, and $0\le z_1\lt z_2$,
 
 $$
 g(z)=\begin{cases}
 0,&|z|\lt z_1,\\
 \operatorname{sgn}(z)\cos^2\left[\frac{\pi(|z|-z_2)}{2(z_1-z_2)}\right],&z_1\le|z|\le z_2,\\
-\operatorname{sgn}(z),&|z|>z_2.
+\operatorname{sgn}(z),&|z|\gt z_2.
 \end{cases}
 $$
 
-`surface=positive` additionally removes $z\lt 0$; `negative` removes $z>0$; `both` keeps the signed weight. The lower interface is mirrored through its sign, not independently reoriented.
+`surface=positive` additionally removes $z\lt 0$; `negative` removes $z\gt 0$; `both` keeps the signed weight. The lower interface is mirrored through its sign, not independently reoriented.
 
 For dipole origin $m$ and later polarizability frame $n$,
 
@@ -229,7 +229,7 @@ For example, `xxz` uses $[\mu_z\alpha_{xx}+\mu_z\alpha_{yy}]/2$.
 
 ### Truncated cross-correlation partners
 
-For each origin $m$ and central molecule $a$ with $g_a^m\ne0$, candidates $b\ne a$ first require $r_{ab}(m)\lt 2R$, with $R=\texttt{cross\_correlation\_cutoff}$. A partner is retained if
+For each origin $m$ and central molecule $a$ with $g_a^m\ne0$, candidates $b\ne a$ first require $r_{ab}(m)\lt 2R$, with $R=\mathrm{cross\_correlation\_cutoff}$. A partner is retained if
 
 $$
 \overline r_{ab,m}=\frac1Q\sum_{\substack{q=0,h,2h,\ldots\\m+q\le L_m}}
@@ -237,7 +237,7 @@ $$
 \qquad L_m=\min(N-1,m+N_{\mathrm{lag}}).
 $$
 
-Here $h=\texttt{cross\_correlation\_sampling\_stride}$ and $Q$ counts sampled terms. The central oxygen is held at time $m$. Distances are minimum-imaged using the cell at the origin frame. Holding the central oxygen fixed defines an asymmetric, time-dependent partner selection and truncates the full system correlation.
+Here $h=\mathrm{cross\_correlation\_sampling\_stride}$ and $Q$ counts sampled terms. The central oxygen is held at time $m$. Distances are minimum-imaged using the cell at the origin frame. Holding the central oxygen fixed defines an asymmetric, time-dependent partner selection and truncates the full system correlation.
 
 ### Accumulation and normalization
 
@@ -292,11 +292,11 @@ $$
 \widehat C_n=[C_n-I_{\mathrm{shift}}C_0]e^{-t_n/\tau},
 $$
 
-where $I_{\mathrm{shift}}=1$ for `subtract_initial_response=true`, otherwise zero; omit the exponential when $\tau=0$. Values read at $t>\texttt{int\_max}$ are zeroed before this operation.
+where $I_{\mathrm{shift}}=1$ for `subtract_initial_response=true`, otherwise zero; omit the exponential when $\tau=0$. Values read at $t\gt \mathrm{int\_max}$ are zeroed before this operation.
 
 $$
 N_T=\left\lfloor\frac{T}{\Delta t}+10^{-10}\right\rfloor,
-\qquad T=\texttt{spectrum\_transform\_time\_ps}.
+\qquad T=mathrm{spectrum\_transform\_time\_ps}.
 $$
 
 $$
@@ -308,7 +308,7 @@ A_s(\nu)=\sum_{n=1}^{N_T-2}\widehat C_n\sin(2\pi\nu t_n).
 $$
 
 The dimensionless $10^{-10}$ prevents floating-point rounding just below an
-integer from dropping one sample. The final otherwise eligible sample is excluded. For $K=\texttt{spectrum\_num\_wavenumbers}$,
+integer from dropping one sample. The final otherwise eligible sample is excluded. For $K=\mathrm{spectrum\_num\_wavenumbers}$,
 
 $$
 \widetilde\nu_k=\frac{k\widetilde\nu_{\max}}{K-1},\qquad
@@ -411,14 +411,14 @@ Inputs are `wavenumber, imaginary, real`; an optional fourth column is ignored. 
 
 $$
 \widetilde\nu=\widetilde\nu_0-\Delta\widetilde\nu,
-\qquad\Delta\widetilde\nu=\texttt{redshift\_cm1}.
+\qquad\Delta\widetilde\nu=\mathrm{redshift\_cm1}.
 $$
 
 The optical frequency conversion uses the shared $c=2.99792458\times10^8$ m/s. Frequencies below are ordinary frequencies in GHz, with wavelengths in µm:
 
 $$
 \nu_{\mathrm{vis}}=\frac{c}{1000\lambda_{\mathrm{vis}}},
-\qquad\lambda_{\mathrm{vis}}=\texttt{visible\_wavelength\_um},
+\qquad\lambda_{\mathrm{vis}}=\mathrm{visible\_wavelength\_um},
 $$
 
 $$

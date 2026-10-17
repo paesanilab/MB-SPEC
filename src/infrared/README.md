@@ -117,13 +117,13 @@ The switched polynomial $P$ and induced replacement $I$ are defined for unique w
 
 $$
 P\equiv\Delta\mathbf M_{\mathrm{2B,poly}}
-=\sum_{i<j}s(r_{ij})\boldsymbol\mu_{ij}^{\mathrm{2B,poly}},
+=\sum_{i\lt j}s(r_{ij})\boldsymbol\mu_{ij}^{\mathrm{2B,poly}},
 \tag{2}
 $$
 
 $$
 I\equiv\Delta\mathbf M_{\mathrm{2B,ind}}
-=\sum_{i<j}s(r_{ij})\boldsymbol\mu_{ij}^{\mathrm{2B,ind}}.
+=\sum_{i\lt j}s(r_{ij})\boldsymbol\mu_{ij}^{\mathrm{2B,ind}}.
 \tag{3}
 $$
 
@@ -145,7 +145,7 @@ The explicit two-body switching function is
 $$
 s(r)=\begin{cases}
 1,&r\le R_i,\\
-1+x^2(2x-3),&R_i<r<R_o,\\
+1+x^2(2x-3),&R_i\lt r\lt R_o,\\
 0,&r\ge R_o,
 \end{cases}
 \qquad x=\frac{r-R_i}{R_o-R_i}.
@@ -166,7 +166,7 @@ With higher-body induction,
 $$
 \mathbf M_{\mathrm{MB-\mu}}=
 \sum_i\boldsymbol\mu_i^{\mathrm{1B}}
-+\sum_{i<j}\left[s(r_{ij})\boldsymbol\mu_{ij}^{\mathrm{2B,poly}}
++\sum_{i\lt j}\left[s(r_{ij})\boldsymbol\mu_{ij}^{\mathrm{2B,poly}}
 +(1-s(r_{ij}))\boldsymbol\mu_{ij}^{\mathrm{2B,ind}}\right]
 +\mathbf M_{\mathrm{higher}}^{\mathrm{ind}}.
 \tag{6}
@@ -176,7 +176,7 @@ The full `1b+2b+nb` route implements
 
 $$
 \mathbf M_{\mathrm{MB-\mu}}=\mathbf M_{\mathrm{perm}}+\mathbf M_{\mathrm{ind}}
-+\sum_{i<j}s(r_{ij})\left[\boldsymbol\mu_{ij}^{\mathrm{2B,poly}}
++\sum_{i\lt j}s(r_{ij})\left[\boldsymbol\mu_{ij}^{\mathrm{2B,poly}}
 -\boldsymbol\mu_{ij}^{\mathrm{2B,ind}}\right].
 \tag{7}
 $$

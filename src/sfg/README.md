@@ -110,12 +110,10 @@ Before explicit pair corrections,
 $$
 \mu_{a,k}=I_{\mathrm{1B}}\mu_{a,k}^{\mathrm{perm}}
 +I_{\mathrm{NB}}\mu_{a,k}^{\mathrm{ind}},
-\tag{2}
 $$
 
 $$
 \alpha_{a,ij}=\alpha_{a,ij}^{\mathrm{Avila,1B}}.
-\tag{3}
 $$
 
 The permanent term comes from the trajectory or internal PS surface when
@@ -157,7 +155,6 @@ For an eligible pair $a,b$, the switched correction allocated to molecule $a$ is
 $$
 \Delta X_{a(ab)}=s(r_{ab})\frac{|g_a|}{|g_a|+|g_b|}\Delta X_{ab}^{\mathrm{2B}},
 \qquad X\in\{\mu_k,\mu_{k'},\alpha_{ij},\alpha_{i'j'}\}.
-\tag{4}
 $$
 
 Allocation to $b$ is analogous; pairs with zero denominator are skipped. For dipole `1b+2b+nb`, the pair term is the MB-mu polynomial minus the TTM4 induced-dimer contribution. For polarizability `1b+2b`, it is the sum of the MB-alpha polynomial correction and the TTM pair increment. Both use the same switch and molecular allocation. For eligible pairs, the two allocated contributions sum to the switched pair tensor before the correlation applies additional interface weights. The allocation is an existing molecular-response convention; conservation of the pair tensor alone does not establish a unique interfacial response.
@@ -169,11 +166,10 @@ The explicit two-body switching function is
 $$
 s(r)=\begin{cases}
 1,&r\le R_i,\\
-1+x^2(2x-3),&R_i<r<R_o,\\
+1+x^2(2x-3),&R_i\lt r\lt R_o,\\
 0,&r\ge R_o,
 \end{cases}
 \qquad x=\frac{r-R_i}{R_o-R_i}.
-\tag{5}
 $$
 
 The switching function vanishes at the outer radius. For polarizability
@@ -198,30 +194,28 @@ components are defined relative to laboratory axes, with the slab normal along
 laboratory z. A tilted cell does not automatically rotate the interface normal.
 
 SFG response calculations require explicit `zc1` and `zc2` values in Å,
-both finite and satisfying `0 <= zc1 < zc2`. There are no default interface
+both finite and satisfying `0\le zc1\lt zc2`. There are no default interface
 distances: choose them for the slab geometry. Missing or invalid bounds stop
 the calculation before the trajectory is read. These settings are not required
 when transforming an existing response with the SFG spectrum program.
 
-Frames contain contiguous O–H–H water triplets. Molecular oxygen coordinates are $\mathbf r_a$ with laboratory coordinate $z_a$, after optional periodic reimaging and mass-weighted slab centering (O mass 15.999, H mass 1.008). For $z_1=\texttt{zc1}$, $z_2=\texttt{zc2}$, and $0\le z_1<z_2$,
+Frames contain contiguous O–H–H water triplets. Molecular oxygen coordinates are $\mathbf r_a$ with laboratory coordinate $z_a$, after optional periodic reimaging and mass-weighted slab centering (O mass 15.999, H mass 1.008). For $z_1=\texttt{zc1}$, $z_2=\texttt{zc2}$, and $0\le z_1\lt z_2$,
 
 $$
 g(z)=\begin{cases}
-0,&|z|<z_1,\\
+0,&|z|\lt z_1,\\
 \operatorname{sgn}(z)\cos^2\left[\frac{\pi(|z|-z_2)}{2(z_1-z_2)}\right],&z_1\le|z|\le z_2,\\
 \operatorname{sgn}(z),&|z|>z_2.
 \end{cases}
-\tag{6}
 $$
 
-`surface=positive` additionally removes $z<0$; `negative` removes $z>0$; `both` keeps the signed weight. The lower interface is mirrored through its sign, not independently reoriented.
+`surface=positive` additionally removes $z\lt 0$; `negative` removes $z>0$; `both` keeps the signed weight. The lower interface is mirrored through its sign, not independently reoriented.
 
 For dipole origin $m$ and later polarizability frame $n$,
 
 $$
 B_{ab}^{mn}=\frac12\left[\mu_{a,k}^{m}\alpha_{b,ij}^{n}
 +\mu_{a,k'}^{m}\alpha_{b,i'j'}^{n}\right].
-\tag{7}
 $$
 
 | Component | $(k,ij)$ | $(k',i'j')$ |
@@ -235,13 +229,12 @@ For example, `xxz` uses $[\mu_z\alpha_{xx}+\mu_z\alpha_{yy}]/2$.
 
 ### Truncated cross-correlation partners
 
-For each origin $m$ and central molecule $a$ with $g_a^m\ne0$, candidates $b\ne a$ first require $r_{ab}(m)<2R$, with $R=\texttt{cross\_correlation\_cutoff}$. A partner is retained if
+For each origin $m$ and central molecule $a$ with $g_a^m\ne0$, candidates $b\ne a$ first require $r_{ab}(m)\lt 2R$, with $R=\texttt{cross\_correlation\_cutoff}$. A partner is retained if
 
 $$
 \overline r_{ab,m}=\frac1Q\sum_{\substack{q=0,h,2h,\ldots\\m+q\le L_m}}
-|\mathbf r_a(m)-\mathbf r_b(m+q)|<R,
+|\mathbf r_a(m)-\mathbf r_b(m+q)|\lt R,
 \qquad L_m=\min(N-1,m+N_{\mathrm{lag}}).
-\tag{8}
 $$
 
 Here $h=\texttt{cross\_correlation\_sampling\_stride}$ and $Q$ counts sampled terms. The central oxygen is held at time $m$. Distances are minimum-imaged using the cell at the origin frame. Holding the central oxygen fixed defines an asymmetric, time-dependent partner selection and truncates the full system correlation.
@@ -249,8 +242,7 @@ Here $h=\texttt{cross\_correlation\_sampling\_stride}$ and $Q$ counts sampled te
 ### Accumulation and normalization
 
 $$
-N_{\mathrm{lag}}=\left\lfloor\frac{\texttt{int\_max}}{\Delta t}\right\rfloor.
-\tag{9}
+N_{\mathrm{lag}}=\left\lfloor\frac{\mathrm{int\_max}}{\Delta t}\right\rfloor.
 $$
 
 For $\ell=0,\ldots,N_{\mathrm{lag}}-1$, $n=m+\ell$, central set $C_m$, and partner set $P_{ma}$,
@@ -258,26 +250,22 @@ For $\ell=0,\ldots,N_{\mathrm{lag}}-1$, $n=m+\ell$, central set $C_m$, and partn
 $$
 S_\ell^{\mathrm{AC}}=\sum_{m=0}^{N-\ell-1}\sum_{a\in C_m}
  w_a^{mn}B_{aa}^{mn},
-\tag{10}
 $$
 
 $$
 w_a^{mn}=\begin{cases}
-(g_a^m)^3,&\texttt{time\_dependent\_switch=false},\\
-g_a^m(g_a^n)^2,&\texttt{time\_dependent\_switch=true},
+(g_a^m)^3,&\mathrm{time\_dependent\_switch=false},\\
+g_a^m(g_a^n)^2,&\mathrm{time\_dependent\_switch=true},
 \end{cases}
-\tag{11}
 $$
 
 $$
 S_\ell^{\mathrm{CC}}=\sum_{m=0}^{N-\ell-1}\sum_{a\in C_m}\sum_{b\in P_{ma}}
  g_a^m(g_b^n)^2B_{ab}^{mn},
-\tag{12}
 $$
 
 $$
 C_\ell=\frac{S_\ell^{\mathrm{AC}}+S_\ell^{\mathrm{CC}}}{N-\ell}.
-\tag{13}
 $$
 
 `include_autocorrelation` and `include_cross_correlation` select the respective sums. The time-dependent switch affects only the same-molecule term. Normalization is by origin count, not molecule or pair count. The response also writes the unnormalized numerator and the origin count.
@@ -290,7 +278,6 @@ A positive `tau` multiplies a correlation by
 
 $$
 C_k\leftarrow C_k\exp\left(-\frac{k\Delta t}{\tau}\right).
-\tag{14}
 $$
 
 `tau = 0` disables damping. Damping suppresses long-time contributions and broadens spectral features.
@@ -303,7 +290,6 @@ Only the first two response columns are read. For $t_n=n\Delta t$,
 
 $$
 \widehat C_n=[C_n-I_{\mathrm{shift}}C_0]e^{-t_n/\tau},
-\tag{15}
 $$
 
 where $I_{\mathrm{shift}}=1$ for `subtract_initial_response=true`, otherwise zero; omit the exponential when $\tau=0$. Values read at $t>\texttt{int\_max}$ are zeroed before this operation.
@@ -311,17 +297,14 @@ where $I_{\mathrm{shift}}=1$ for `subtract_initial_response=true`, otherwise zer
 $$
 N_T=\left\lfloor\frac{T}{\Delta t}+10^{-10}\right\rfloor,
 \qquad T=\texttt{spectrum\_transform\_time\_ps}.
-\tag{16}
 $$
 
 $$
 A_c(\nu)=\frac12\widehat C_0+\sum_{n=1}^{N_T-2}\widehat C_n\cos(2\pi\nu t_n),
-\tag{17}
 $$
 
 $$
 A_s(\nu)=\sum_{n=1}^{N_T-2}\widehat C_n\sin(2\pi\nu t_n).
-\tag{18}
 $$
 
 The dimensionless $10^{-10}$ prevents floating-point rounding just below an
@@ -330,22 +313,18 @@ integer from dropping one sample. The final otherwise eligible sample is exclude
 $$
 \widetilde\nu_k=\frac{k\widetilde\nu_{\max}}{K-1},\qquad
 \nu_k=c\widetilde\nu_k,\qquad c=2.99792458\times10^{-2}\;\mathrm{cm\,ps}^{-1}.
-\tag{19}
 $$
 
 $$
 S_{\mathrm{im}}(\widetilde\nu_k)=\Delta t\,\widetilde\nu_k A_c(\nu_k),
-\tag{20}
 $$
 
 $$
 S_{\mathrm{re}}(\widetilde\nu_k)=-\Delta t\,\widetilde\nu_k A_s(\nu_k),
-\tag{21}
 $$
 
 $$
 M(\widetilde\nu_k)=S_{\mathrm{im}}^2+S_{\mathrm{re}}^2.
-\tag{22}
 $$
 
 When spectral smoothing is enabled, it is applied separately to the real and imaginary components before the squared magnitude is calculated. The fourth output column therefore equals the sum of squares of the reported components, up to output precision. Fresnel post-processing reads the complex components and ignores the fourth column.
@@ -354,7 +333,6 @@ There is no quantum correction, temperature prefactor, or absolute susceptibilit
 
 $$
 \widetilde\nu_{\mathrm{Nyquist}}=\frac1{2c\Delta t}.
-\tag{23}
 $$
 
 Frequencies above this limit are aliases. Interfacial weighting, pair partition, partner truncation, and selected dipole definitions must be reported.
@@ -366,13 +344,11 @@ For Gaussian spectral smoothing with full width at half maximum (FWHM) $w$ and g
 $$
 \sigma_{\mathrm{grid}}=\frac{w}{2\sqrt{2\ln2}\,\Delta\widetilde\nu},
 \qquad K=2\left\lceil3\sigma_{\mathrm{grid}}\right\rceil+1,
-\tag{24}
 $$
 
 $$
 g_j=\frac{\exp\left[-(j-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}
 {\sum_{m=0}^{K-1}\exp\left[-(m-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}.
-\tag{25}
 $$
 
 The Gaussian is truncated at three standard deviations. Only positive-frequency points contribute to the convolution, and the available weights are renormalized at each boundary. The shared smoothing routine sets the zero-frequency output to zero. The unsmoothed SFG signal is already zero at zero frequency. Smoothing a completed spectrum is distinct from damping its time correlation.
@@ -385,7 +361,6 @@ $$
 \operatorname{Im}\chi_{ijk}^{(2,R)}(\omega)=
 \operatorname{Im}\left[\frac{i\omega}{k_BT}\int_0^\infty dt\,
  e^{-i\omega t}\langle\alpha_{ij}(t)\mu_k(0)\rangle\right].
-\tag{26}
 $$
 
 The indices $i$, $j$, and $k$ refer to the sum-frequency, visible, and infrared polarizations, respectively. MB-SPEC does not implement this absolute prefactor or an unrestricted total dipole–polarizability correlation. `SFG.temperature` is required to be positive by the spectrum executable but does not enter its numerical transform.
@@ -430,7 +405,6 @@ For $q\in\{xxz,zzz,xzx\}$,
 
 $$
 \widetilde\chi_q(\widetilde\nu)=R_q(\widetilde\nu)+iI_q(\widetilde\nu).
-\tag{27}
 $$
 
 Inputs are `wavenumber, imaginary, real`; an optional fourth column is ignored. Frequency is taken from `zzz`. Equal row counts are checked, but matching frequency grids are not.
@@ -438,7 +412,6 @@ Inputs are `wavenumber, imaginary, real`; an optional fourth column is ignored. 
 $$
 \widetilde\nu=\widetilde\nu_0-\Delta\widetilde\nu,
 \qquad\Delta\widetilde\nu=\texttt{redshift\_cm1}.
-\tag{28}
 $$
 
 The optical frequency conversion uses the shared $c=2.99792458\times10^8$ m/s. Frequencies below are ordinary frequencies in GHz, with wavelengths in µm:
@@ -446,26 +419,22 @@ The optical frequency conversion uses the shared $c=2.99792458\times10^8$ m/s. F
 $$
 \nu_{\mathrm{vis}}=\frac{c}{1000\lambda_{\mathrm{vis}}},
 \qquad\lambda_{\mathrm{vis}}=\texttt{visible\_wavelength\_um},
-\tag{29}
 $$
 
 $$
 \nu_{\mathrm{IR}}=\widetilde\nu\frac{100c}{10^9},\qquad
 \lambda_{\mathrm{IR}}=\frac{10^4}{\widetilde\nu},
-\tag{30}
 $$
 
 $$
 \nu_{\mathrm{SFG}}=\nu_{\mathrm{vis}}+\nu_{\mathrm{IR}},\qquad
 \lambda_{\mathrm{SFG}}=\frac{c}{1000\nu_{\mathrm{SFG}}}.
-\tag{31}
 $$
 
 The same real constant background $B$ is added to each component:
 
 $$
 X_q=[R_q+B]+iI_q,\qquad X_{zxx}=X_{xzx}.
-\tag{32}
 $$
 
 The code does not read a separate `zxx` spectrum. A shifted zero infrared wavenumber is rejected because its wavelength is undefined.
@@ -476,7 +445,6 @@ The incident medium is air, $n_1=1$. Water's complex refractive index is interpo
 
 $$
 n_2(\nu)=n_{\mathrm{water}}(\lambda)+ik_{\mathrm{water}}(\lambda).
-\tag{33}
 $$
 
 Interpolation requests outside either table are assigned its nearest endpoint value. Physically justified optical calculations require tables covering the visible, infrared, and sum-frequency wavelengths; endpoint clamping does not establish an optical extrapolation model.
@@ -485,30 +453,25 @@ Using principal complex roots,
 
 $$
 n_i(\nu)=\left[\frac{n_2(\nu)^4+5n_2(\nu)^2}{4n_2(\nu)^2+2}\right]^{1/2},
-\tag{34}
 $$
 
 $$
 \gamma=\arcsin\left(\frac{n_1\sin\theta}{n_2}\right).
-\tag{35}
 $$
 
 Angles are measured from the surface normal, with JSON incidence angles converted from degrees to radians.
 
 $$
 L_{xx}(\nu,\theta)=\frac{2n_1\cos\gamma}{n_1\cos\gamma+n_2\cos\theta},
-\tag{36}
 $$
 
 $$
 L_{yy}(\nu,\theta)=\frac{2n_1\cos\theta}{n_1\cos\theta+n_2\cos\gamma},
-\tag{37}
 $$
 
 $$
 L_{zz}(\nu,\theta)=\frac{2n_2\cos\theta\,(n_1/n_i)^2}
 {n_1\cos\gamma+n_2\cos\theta}.
-\tag{38}
 $$
 
 These complex factors change both magnitude and phase. For visible incidence $\beta_1$ and infrared incidence $\beta_2$,
@@ -516,7 +479,6 @@ These complex factors change both magnitude and phase. For visible incidence $\b
 $$
 \beta=\arcsin\left[\frac{\nu_{\mathrm{vis}}\sin\beta_1+
 \nu_{\mathrm{IR}}\sin\beta_2}{\nu_{\mathrm{SFG}}}\right].
-\tag{39}
 $$
 
 Write $L_{ab}^{(1)}=L_{ab}(\nu_{\mathrm{vis}},\beta_1)$,
@@ -527,17 +489,14 @@ $L_{ab}^{(3)}=L_{ab}(\nu_{\mathrm{SFG}},\beta)$.
 
 $$
 A_{\mathrm{SSP}}=L_{zz}^{(2)}L_{yy}^{(1)}L_{yy}^{(3)}\sin\beta_2\,X_{xxz},
-\tag{40}
 $$
 
 $$
 A_{\mathrm{PSS}}=L_{yy}^{(2)}L_{yy}^{(1)}L_{zz}^{(3)}\sin\beta\,X_{zxx},
-\tag{41}
 $$
 
 $$
 A_{\mathrm{SPS}}=L_{yy}^{(2)}L_{zz}^{(1)}L_{yy}^{(3)}\sin\beta_1\,X_{xzx},
-\tag{42}
 $$
 
 $$
@@ -551,14 +510,12 @@ A_{\mathrm{PPP}}={}&-L_{zz}^{(2)}L_{xx}^{(1)}L_{xx}^{(3)}
 &+L_{zz}^{(2)}L_{zz}^{(1)}L_{zz}^{(3)}
 \sin\beta\sin\beta_1\sin\beta_2\,X_{zzz}.
 \end{aligned}
-\tag{43}
 $$
 
 PPP is a coherent complex sum: interference must be evaluated before squaring.
 
 $$
 I_{\mathrm{pol}}(\widetilde\nu)=|A_{\mathrm{pol}}(\widetilde\nu)|^2.
-\tag{44}
 $$
 
 Output columns are shifted wavenumber and squared complex amplitude. No incident-beam intensity, additional optical frequency prefactor, detector response, coherence length, or absolute susceptibility conversion is included. Values are not calibrated experimental intensities. The interfacial-index prescription, complex-index convention, and $X_{zxx}=X_{xzx}$ assumption require justification for the intended physical application.

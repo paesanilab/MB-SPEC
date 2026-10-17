@@ -80,13 +80,11 @@ and XYZ comments do not supply the time axis.
 
 $$
 \mathbf V(t_i)=\sum_{a\;\mathrm{included}}\mathbf v_a(t_i),
-\tag{1}
 $$
 
 $$
 C(k\Delta t)=\frac1{N-k}\sum_{i=0}^{N-k-1}
 \mathbf V(t_i)\cdot\mathbf V(t_{i+k}).
-\tag{2}
 $$
 
 This unweighted collective correlation includes cross terms between atoms. It differs from $\sum_a\langle\mathbf v_a(0)\cdot\mathbf v_a(t)\rangle$. With `subtract_mean_velocity`, the trajectory mean of $\mathbf V$ is removed first.
@@ -99,7 +97,6 @@ A positive `tau` multiplies a correlation by
 
 $$
 C_k\leftarrow C_k\exp\left(-\frac{k\Delta t}{\tau}\right).
-\tag{3}
 $$
 
 `tau = 0` disables damping. Damping suppresses long-time contributions and broadens spectral features.
@@ -108,18 +105,16 @@ Use the same time unit for $\Delta t$ and $\tau$.
 
 ### Transform and normalization
 
-The spectrum reader retains rows with $t<\texttt{int\_max}$ and transforms the first $N_T=\lfloor T_{\mathrm{transform}}/\Delta t_{\mathrm{ps}}+10^{-10}\rfloor$ samples. Here $T_{\mathrm{transform}}=\texttt{spectrum\_transform\_time\_ps}$. With $\Delta t=10^{-12}\Delta t_{\mathrm{ps}}$ in seconds and $c=2.99792458\times10^{10}$ cm/s, the cosine sum is
+The spectrum reader retains rows with $t\lt \mathrm{int\_max}$ and transforms the first $N_T=\lfloor T_{\mathrm{transform}}/\Delta t_{\mathrm{ps}}+10^{-10}\rfloor$ samples. Here $T_{\mathrm{transform}}$ is the JSON parameter `spectrum_transform_time_ps`. With $\Delta t=10^{-12}\Delta t_{\mathrm{ps}}$ in seconds and $c=2.99792458\times10^{10}$ cm/s, the cosine sum is
 
 $$
 D(f_n)=C_0+2\sum_{k=1}^{N_T-1}C_k
 \cos\left(\frac{2\pi nk}{2N_T-1}\right),\qquad
 f_n=\frac{n}{(2N_T-1)\Delta t},
-\tag{4}
 $$
 
 $$
 I_{\mathrm{code}}(\widetilde\nu_n)=\frac{2cD(c\widetilde\nu_n)}{C(0)}.
-\tag{5}
 $$
 
 The discrete sum has no $\Delta t$ factor. The output is therefore an implemented normalized line shape whose spectral-density normalization requires analytical validation; it is not established as an absolute vibrational density of states. The implementation requires $C(0)>0$ and has no temperature, volume, dielectric, Planck-constant, or quantum-correction prefactor. 
@@ -134,13 +129,11 @@ For Gaussian spectral smoothing with full width at half maximum (FWHM) $w$ and g
 $$
 \sigma_{\mathrm{grid}}=\frac{w}{2\sqrt{2\ln2}\,\Delta\widetilde\nu},
 \qquad K=2\left\lceil3\sigma_{\mathrm{grid}}\right\rceil+1,
-\tag{6}
 $$
 
 $$
 g_j=\frac{\exp\left[-(j-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}
 {\sum_{m=0}^{K-1}\exp\left[-(m-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}.
-\tag{7}
 $$
 
 The Gaussian is truncated at three standard deviations. Only positive-frequency points contribute to the convolution, and the available weights are renormalized at each boundary. The shared smoothing routine sets the zero-frequency output to zero. For POWER, smoothing therefore changes a potentially nonzero zero-frequency value. Smoothing a completed spectrum is distinct from damping its time correlation.

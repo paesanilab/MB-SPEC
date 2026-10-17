@@ -1,9 +1,7 @@
 # Sum-frequency generation spectra with MB-SPEC
 
-
-The SFG workflow calculates a slab-weighted, truncated dipole--polarizability cross-correlation for water.
-It requires a water slab trajectory with contiguous O--H--H triplets.
-The trajectory must provide the permanent and induced dipole columns required by the reader, including when a selected decomposition omits one contribution or uses internal PS permanent dipoles.
+The SFG workflow calculates a truncated dipole-polarizability cross-correlation function for water.
+It requires a water slab trajectory with the permanent and induced dipole columns required by the reader.
 
 Run:
 
@@ -27,7 +25,7 @@ Optionally apply Fresnel factors after calculating the component spectra:
 | Time | ps |
 | Permanent and induced dipoles | Debye |
 | Polarizabilities | Å³ |
-| Molecular response and unnormalized numerator | D·Å³; normalization is by time-origin count |
+| Molecular response | D·Å³ |
 | Temperature | K|
 | Frequency $\nu$, angular frequency $\omega$ | ps⁻¹ and rad/ps  |
 | Wavenumber $\widetilde\nu$, smoothing FWHM, Fresnel redshift | cm⁻¹ |
@@ -87,8 +85,6 @@ Put all settings inside `SFG`.
 }
 ```
 
-Both external dipole triplets remain
-required even with `use_ps_dipole=true`. 
 The 4500 cm⁻¹ upper limit exceeds the approximately
 4169 cm⁻¹ Nyquist limit at 4 fs sampling. 
 
@@ -172,16 +168,16 @@ $$
 The switching function vanishes at the outer radius. For polarizability
 `1b+2b`, both polynomial and pair induction have full weight below the inner
 radius (default 5.5 Å), taper smoothly to zero at the outer radius (default
-7.5 Å), and are omitted at and beyond that radius. This changes the previous
-polynomial-only option. It matches Raman's smoothly truncated `1b+2b`
-definition, excludes higher-body induction, and differs from the published
+7.5 Å), and are omitted at and beyond that radius. 
+It excludes higher-body induction, and differs from the published
 MB-alpha model, which retains long-range pair induction.
 
 ## Dipole-polarizability correlation
 
 ### Interface weights and tensor selection
 
-Frames contain contiguous O–H–H water triplets. Molecular oxygen coordinates are $\mathbf r_a$ with laboratory coordinate $z_a$, after optional periodic reimaging and mass-weighted slab centering (O mass 15.999, H mass 1.008). For $z_1=\mathrm{zc1}$, $z_2=\mathrm{zc2}$, and $0\le z_1\lt z_2$,
+Molecular oxygen coordinates are $\mathbf r_a$ with laboratory coordinate $z_a$. 
+For $z_1=\mathrm{zc1}$, $z_2=\mathrm{zc2}$, and $0\le z_1\lt z_2$,
 
 $$
 g(z)=\begin{cases}
@@ -190,8 +186,6 @@ g(z)=\begin{cases}
 \mathrm{sgn}(z),&|z|\gt z_2.
 \end{cases}
 $$
-
-`surface=positive` additionally removes $z\lt 0$; `negative` removes $z\gt 0$; `both` keeps the signed weight. The lower interface is mirrored through its sign, not independently reoriented.
 
 For dipole origin $m$ and later polarizability frame $n$,
 
@@ -264,8 +258,6 @@ $$
 
 `tau = 0` disables damping. Damping suppresses long-time contributions and broadens spectral features.
 
-Use the same time unit for $\Delta t$ and $\tau$.
-
 ### Reduced complex transform
 
 Only the first two response columns are read. For $t_n=n\Delta t$,
@@ -317,7 +309,6 @@ $$
 \widetilde\nu_{\mathrm{Nyquist}}=\frac1{2c\Delta t}.
 $$
 
-Frequencies above this limit are aliases. Interfacial weighting, pair partition, partner truncation, and selected dipole definitions must be reported.
 
 ### Gaussian smoothing
 
@@ -355,9 +346,7 @@ response or calibrate an absolute susceptibility.
 
 ### Fresnel JSON options
 
-Use a separate flat JSON object, not the `SFG` object. Every entry is required,
-with no defaults; paths are relative to the working directory. Values match
-[fresnel.json](fresnel.json). **Remove comments before using this example.**
+Use a separate JSON object, not the `SFG` object. **Remove comments before using this example.**
 
 ```jsonc
 {
@@ -378,8 +367,7 @@ with no defaults; paths are relative to the working directory. Values match
 }
 ```
 
-The supplied optical tables
-are in `fresnel_factors/`; ensure their coverage is appropriate as described below.
+The supplied optical tables are in `fresnel_factors/`
 
 ### Input convention and frequency conversion
 
@@ -389,7 +377,7 @@ $$
 \widetilde\chi_q(\widetilde\nu)=R_q(\widetilde\nu)+iI_q(\widetilde\nu).
 $$
 
-Inputs are `wavenumber, imaginary, real`; an optional fourth column is ignored. Frequency is taken from `zzz`. Equal row counts are checked, but matching frequency grids are not.
+Inputs are `wavenumber, imaginary, real`; an optional fourth column is ignored. Frequency is taken from `zzz`. 
 
 $$
 \widetilde\nu=\widetilde\nu_0-\Delta\widetilde\nu,
@@ -428,8 +416,6 @@ The incident medium is air, $n_1=1$. Water's complex refractive index is interpo
 $$
 n_2(\nu)=n_{\mathrm{water}}(\lambda)+ik_{\mathrm{water}}(\lambda).
 $$
-
-Interpolation requests outside either table are assigned its nearest endpoint value. Physically justified optical calculations require tables covering the visible, infrared, and sum-frequency wavelengths; endpoint clamping does not establish an optical extrapolation model.
 
 Using principal complex roots,
 
@@ -494,10 +480,6 @@ A_{\mathrm{PPP}}={}&-L_{zz}^{(2)}L_{xx}^{(1)}L_{xx}^{(3)}
 \end{aligned}
 $$
 
-PPP is a coherent complex sum: interference must be evaluated before squaring.
-
 $$
 I_{\mathrm{pol}}(\widetilde\nu)=|A_{\mathrm{pol}}(\widetilde\nu)|^2.
 $$
-
-Output columns are shifted wavenumber and squared complex amplitude. No incident-beam intensity, additional optical frequency prefactor, detector response, coherence length, or absolute susceptibility conversion is included. Values are not calibrated experimental intensities. The interfacial-index prescription, complex-index convention, and $X_{zxx}=X_{xzx}$ assumption require justification for the intended physical application.

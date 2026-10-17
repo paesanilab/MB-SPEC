@@ -101,8 +101,6 @@ $$
 
 `tau = 0` disables damping. Damping suppresses long-time contributions and broadens spectral features.
 
-Use the same time unit for $\Delta t$ and $\tau$.
-
 ### Transform and normalization
 
 The spectrum reader retains rows with $t\lt \mathrm{int\_max}$ and transforms the first $N_T=\lfloor T_{\mathrm{transform}}/\Delta t_{\mathrm{ps}}+10^{-10}\rfloor$ samples. Here $T_{\mathrm{transform}}$ is the JSON parameter `spectrum_transform_time_ps`. With $\Delta t=10^{-12}\Delta t_{\mathrm{ps}}$ in seconds and $c=2.99792458\times10^{10}$ cm/s, the cosine sum is
@@ -136,4 +134,4 @@ g_j=\frac{\exp\left[-(j-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}
 {\sum_{m=0}^{K-1}\exp\left[-(m-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}.
 $$
 
-The Gaussian is truncated at three standard deviations. Only positive-frequency points contribute to the convolution, and the available weights are renormalized at each boundary. The shared smoothing routine sets the zero-frequency output to zero. For POWER, smoothing therefore changes a potentially nonzero zero-frequency value. Smoothing a completed spectrum is distinct from damping its time correlation.
+The Gaussian is truncated at three standard deviations. 

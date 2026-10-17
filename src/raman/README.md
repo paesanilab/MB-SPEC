@@ -177,7 +177,7 @@ of interest.
 
 Pair contributions are summed over unique water dimers. The switching
 function depends on the O–O distance $r$, with inner radius
-$R_i=\texttt{cutoff\_1}$ and outer radius $R_o=\texttt{cutoff\_2}$:
+$R_i$ (`cutoff_1`) and outer radius $R_o$ (`cutoff_2`):
 
 $$
 s(r)=\begin{cases}
@@ -202,7 +202,7 @@ electric field along the three Cartesian directions. The remaining,
 traceless tensor describes its directional anisotropy:
 
 $$
-\alpha_{\mathrm{iso}}(t)=\frac13\operatorname{Tr}\boldsymbol\alpha(t),\qquad
+\alpha_{\mathrm{iso}}(t)=\frac13\mathrm{Tr}\boldsymbol\alpha(t),\qquad
 \boldsymbol\beta(t)=\boldsymbol\alpha(t)-\alpha_{\mathrm{iso}}(t)\mathbf I,
 $$
 
@@ -214,7 +214,7 @@ C_{\mathrm{iso}}(t)=
 \left\langle\alpha_{\mathrm{iso}}(0)\alpha_{\mathrm{iso}}(t)\right\rangle,
 \qquad
 C_{\mathrm{dep}}(t)=
-\left\langle\operatorname{Tr}[\boldsymbol\beta(0)\boldsymbol\beta(t)]\right\rangle.
+\left\langle\mathrm{Tr}[\boldsymbol\beta(0)\boldsymbol\beta(t)]\right\rangle.
 $$
 
 The isotropic correlation tracks
@@ -231,7 +231,7 @@ $$
 
 $$
 C_{\mathrm{dep}}(k\Delta t)=\frac1{N-k}\sum_{i=0}^{N-k-1}
-\operatorname{Tr}[\boldsymbol\beta(t_i)\boldsymbol\beta(t_{i+k})].
+\mathrm{Tr}[\boldsymbol\beta(t_i)\boldsymbol\beta(t_{i+k})].
 $$
 
 Each lag is normalized by its own number of time origins, $N-k$.

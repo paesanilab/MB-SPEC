@@ -19,11 +19,12 @@ The permanent charges produce an electric field at the polarizable sites.
 Each site develops an induced dipole:
 
 $$
-\boldsymbol\mu_i^{\mathrm{ind}}
-=a_i\left[
-\mathbf E_i^{\mathrm{perm}}
-+\sum_{j\ne i}\mathbf T_{ij}^{\mathrm{damped}}
-\boldsymbol\mu_j^{\mathrm{ind}}
+\boldsymbol{\mu}_{i}^{\mathrm{ind}}
+=
+a_i\left[
+\mathbf{E}_{i}^{\mathrm{perm}}
++\sum_{j\ne i}\mathbf{T}_{ij}^{\mathrm{damped}}
+\,\boldsymbol{\mu}_{j}^{\mathrm{ind}}
 \right].
 $$
 

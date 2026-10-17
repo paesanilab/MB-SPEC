@@ -338,10 +338,10 @@ increases output intensities by a factor of ten without changing spectral shapes
 For transform duration $T_{\mathrm{transform}}$, the sample count is
 
 $$
-N_T=\left\lfloor\frac{T_{\mathrm{transform}}}{\Delta t}+10^{-10}\right\rfloor,
-\qquad T_{\mathrm{transform}}=\mathrm{spectrum\_transform\_time\_ps}.
+N_T=\left\lfloor\frac{T_{\mathrm{transform}}}{\Delta t}+10^{-10}\right\rfloor.
 $$
 
+Here, $T_{\mathrm{transform}}$ is the JSON parameter `spectrum_transform_time_ps`.
 The small dimensionless offset prevents rounding just below an integer from
 dropping a sample. MB-SPEC evaluates
 

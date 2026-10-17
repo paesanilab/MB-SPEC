@@ -22,7 +22,8 @@ $$
 \boldsymbol{\mu}_{i}^{\mathrm{ind}}
 =a_i\left[
 \mathbf{E}_{i}^{\mathrm{perm}}
-+\sum_{j\ne i}\mathbf{T}_{ij}^{\mathrm{damped}}\boldsymbol{\mu}_{j}^{\mathrm{ind}}
++\sum_{j\ne i}\mathbf{T}_{ij}^{\mathrm{damped}}
+ \boldsymbol{\mu}_{j}^{\mathrm{ind}}
 \right].
 $$
 

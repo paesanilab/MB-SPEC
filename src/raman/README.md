@@ -108,8 +108,7 @@ from changes caused by interactions between molecules:
 $$
 \boldsymbol\alpha_{\mathrm{tot}}(1,\ldots,N)=
 \sum_i\boldsymbol\alpha_{\mathrm{1B}}(i)
-+\sum_{i<j}\boldsymbol\alpha_{\mathrm{2B}}(i,j)+\cdots.
-\tag{1}
++\sum_{i\lt j}\boldsymbol\alpha_{\mathrm{2B}}(i,j)+\cdots.
 $$
 
 The MB-alpha surface uses the Avila one-body polarizability, a short-range
@@ -120,7 +119,6 @@ $$
 \boldsymbol\alpha_{\mathrm{2B}}(i,j)=
 s(r_{ij})\boldsymbol\alpha_{\mathrm{2B,poly}}(i,j)
 +\boldsymbol\alpha_{\mathrm{2B,ind}}(i,j).
-\tag{2}
 $$
 
 The polynomial is fitted as a correction to the TTM4-Ind polarizability.
@@ -134,19 +132,17 @@ To describe the implemented modes, define
 $$
 A=\sum_i\boldsymbol\alpha_{\mathrm{1B}}^{\mathrm{Avila}}(i),\qquad
 T=\boldsymbol\alpha^{\mathrm{TTM4}}(1,\ldots,N),
-\tag{3}
 $$
 
 $$
 T_1=\sum_i\boldsymbol\alpha^{\mathrm{TTM4}}_{\mathrm{1B}}(i),\qquad
-P_\alpha=\sum_{i<j}s(r_{ij})\boldsymbol\alpha_{\mathrm{2B,poly}}(i,j).
-\tag{4}
+P_\alpha=\sum_{i\lt j}s(r_{ij})\boldsymbol\alpha_{\mathrm{2B,poly}}(i,j).
 $$
 
 For the truncated `1b+2b` mode, define the switched induction increment
 
 $$
-J_\alpha=\sum_{i<j}s(r_{ij})
+J_\alpha=\sum_{i\lt j}s(r_{ij})
 \left[\boldsymbol\alpha^{\mathrm{TTM4}}(i,j)
 -\boldsymbol\alpha^{\mathrm{TTM4}}(i)
 -\boldsymbol\alpha^{\mathrm{TTM4}}(j)\right].
@@ -186,11 +182,10 @@ $R_i=\texttt{cutoff\_1}$ and outer radius $R_o=\texttt{cutoff\_2}$:
 $$
 s(r)=\begin{cases}
 1,&r\le R_i,\\
-1+x^2(2x-3),&R_i<r<R_o,\\
+1+x^2(2x-3),&R_i\lt r\lt R_o,\\
 0,&r\ge R_o,
 \end{cases}
 \qquad x=\frac{r-R_i}{R_o-R_i}.
-\tag{5}
 $$
 
 The default radii are 5.5 and 7.5 Å. In `1b+2b`, the same switch multiplies
@@ -209,7 +204,6 @@ traceless tensor describes its directional anisotropy:
 $$
 \alpha_{\mathrm{iso}}(t)=\frac13\operatorname{Tr}\boldsymbol\alpha(t),\qquad
 \boldsymbol\beta(t)=\boldsymbol\alpha(t)-\alpha_{\mathrm{iso}}(t)\mathbf I,
-\tag{6}
 $$
 
 where $\mathbf I$ is the identity tensor. These quantities give the two
@@ -221,7 +215,6 @@ C_{\mathrm{iso}}(t)=
 \qquad
 C_{\mathrm{dep}}(t)=
 \left\langle\operatorname{Tr}[\boldsymbol\beta(0)\boldsymbol\beta(t)]\right\rangle.
-\tag{7}
 $$
 
 The isotropic correlation tracks
@@ -234,13 +227,11 @@ using every available pair separated by $k\Delta t$:
 $$
 C_{\mathrm{iso}}(k\Delta t)=\frac1{N-k}\sum_{i=0}^{N-k-1}
 \alpha_{\mathrm{iso}}(t_i)\alpha_{\mathrm{iso}}(t_{i+k}),
-\tag{8}
 $$
 
 $$
 C_{\mathrm{dep}}(k\Delta t)=\frac1{N-k}\sum_{i=0}^{N-k-1}
 \operatorname{Tr}[\boldsymbol\beta(t_i)\boldsymbol\beta(t_{i+k})].
-\tag{9}
 $$
 
 Each lag is normalized by its own number of time origins, $N-k$.
@@ -255,7 +246,6 @@ $$
 \frac1N\sum_{i=0}^{N-1}\boldsymbol\alpha(t_i),\qquad
 \delta\boldsymbol\alpha(t_i)=
 \boldsymbol\alpha(t_i)-\langle\boldsymbol\alpha\rangle_{\mathrm{traj}}.
-\tag{10}
 $$
 
 In this case, replace $\boldsymbol\alpha$ in Eq. (6) by
@@ -270,7 +260,6 @@ either correlation in Eq. (7), the continuous convention is
 $$
 \widetilde C(\omega)=\int_{-\infty}^{\infty}
 C(t)e^{-i\omega t}\,dt.
-\tag{11}
 $$
 
 For an equilibrium autocorrelation, $C(-t)=C(t)$, so positive lag times
@@ -278,7 +267,6 @@ suffice for a cosine transform:
 
 $$
 \widetilde C(\omega)=2\int_0^\infty C(t)\cos(\omega t)\,dt.
-\tag{12}
 $$
 
 A reduced Raman spectrum also includes a frequency-dependent
@@ -291,7 +279,6 @@ I(\widetilde\nu)=
 \mathcal A\,\frac{\widetilde\nu}{(\widetilde\nu_I-\widetilde\nu)^4}
 \tanh\left(\frac{\hbar\,2\pi c\widetilde\nu}{2k_BT}\right)
 S(\widetilde\nu).
-\tag{13}
 $$
 
 Here, $\widetilde\nu$ is the Raman-shift wavenumber in cm⁻¹,
@@ -328,7 +315,7 @@ normalization. A positive JSON cell volume is nevertheless required by
 A finite trajectory supplies discrete correlation samples over a limited
 duration. `int_max` sets the exclusive lag limit; `spectrum_transform_time_ps`
 selects the response duration used for the transform and must satisfy
-`0 < spectrum_transform_time_ps <= int_max`. If `trajectory_duration_ps`
+`0 \lt spectrum_transform_time_ps \le int_max`. If `trajectory_duration_ps`
 is nonzero, `int_max` must also not exceed that duration. At least four
 response rows below `int_max` and two transformed samples are required.
 
@@ -341,7 +328,6 @@ D_k=C_k
 \exp(-k\Delta t/\tau),&\tau>0,\\
 1,&\tau=0.
 \end{cases}
-\tag{14}
 $$
 
 Damping suppresses long-time contributions and broadens spectral features;
@@ -354,7 +340,6 @@ For transform duration $T_{\mathrm{transform}}$, the sample count is
 $$
 N_T=\left\lfloor\frac{T_{\mathrm{transform}}}{\Delta t}+10^{-10}\right\rfloor,
 \qquad T_{\mathrm{transform}}=\texttt{spectrum\_transform\_time\_ps}.
-\tag{15}
 $$
 
 The small dimensionless offset prevents rounding just below an integer from
@@ -364,7 +349,6 @@ $$
 S(\widetilde\nu_n)=2\Delta t\left[
 \frac12D_0+\sum_{k=1}^{N_T-2}D_k
 \cos(2\pi c_{\mathrm{cm/ps}}\widetilde\nu_n k\Delta t)\right],
-\tag{16}
 $$
 
 on the grid
@@ -374,7 +358,6 @@ $$
 \nu_n=n\Delta\nu,\qquad\omega_n=2\pi\nu_n,\qquad
 \widetilde\nu_n=\nu_n/c_{\mathrm{cm/ps}},
 \quad n=0,\ldots,N_T-1.
-\tag{17}
 $$
 
 Here $c_{\mathrm{cm/ps}}$ is the speed of light in cm/ps. Time remains in ps
@@ -392,13 +375,11 @@ $\Delta\widetilde\nu$, the kernel width and length are
 $$
 \sigma_{\mathrm{grid}}=\frac{w}{2\sqrt{2\ln2}\,\Delta\widetilde\nu},
 \qquad K=2\left\lceil3\sigma_{\mathrm{grid}}\right\rceil+1,
-\tag{18}
 $$
 
 $$
 g_j=\frac{\exp[-(j-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)]}
 {\sum_{m=0}^{K-1}\exp[-(m-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)]}.
-\tag{19}
 $$
 
 The Gaussian is truncated at three standard deviations. 

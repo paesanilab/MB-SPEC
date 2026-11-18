@@ -32,7 +32,7 @@ Optionally apply Fresnel factors after calculating the component spectra:
 | Reduced complex signal | Uncalibrated; equations retain D·Å³ × ps × cm⁻¹ |
 | Squared magnitude and Fresnel intensity | Squared reduced-signal units |
 | Fresnel wavelengths and optical frequencies | µm and GHz |
-| Fresnel incidence angles | Degrees from the surface normal in JSON; converted to radians |
+| Fresnel incidence angles | Degrees from the surface normal in JSON |
 | Refractive index and extinction coefficient | Dimensionless |
 
 ## Outputs
@@ -250,13 +250,13 @@ $$
 
 ### Damping
 
+Damping suppresses long-time contributions and broadens spectral features.
+`tau = 0` disables damping. 
 A positive `tau` multiplies a correlation by
 
 $$
 C_k\leftarrow C_k\exp\left(-\frac{k\Delta t}{\tau}\right).
 $$
-
-`tau = 0` disables damping. Damping suppresses long-time contributions and broadens spectral features.
 
 ### Reduced complex transform
 
@@ -266,7 +266,9 @@ $$
 \widehat C_n=[C_n-I_{\mathrm{shift}}C_0]e^{-t_n/\tau},
 $$
 
-where $I_{\mathrm{shift}}=1$ for `subtract_initial_response=true`, otherwise zero; omit the exponential when $\tau=0$. Values read at $t\gt \mathrm{int\_max}$ are zeroed before this operation.
+where $I_{\mathrm{shift}}=1$ for `subtract_initial_response=true`, otherwise zero.
+The exponential is omitted when $\tau=0$. 
+Values read at $t\gt \mathrm{int\_max}$ are zeroed before this operation.
 
 $$
 N_T=\left\lfloor\frac{T}{\Delta t}+10^{-10}\right\rfloor,
@@ -300,7 +302,9 @@ $$
 M(\widetilde\nu_k)=S_{\mathrm{im}}^2+S_{\mathrm{re}}^2.
 $$
 
-When spectral smoothing is enabled, it is applied separately to the real and imaginary components before the squared magnitude is calculated. The fourth output column therefore equals the sum of squares of the reported components, up to output precision. Fresnel post-processing reads the complex components and ignores the fourth column.
+When spectral smoothing is enabled, it is applied separately to the real and imaginary components before the squared magnitude is calculated. 
+The fourth output column equals the sum of squares of the reported components. 
+Fresnel post-processing reads the complex components and ignores the fourth column.
 
 There is no quantum correction, temperature prefactor, or absolute susceptibility conversion. Increasing the requested grid density does not extend the independent physical frequency range:
 
@@ -340,8 +344,7 @@ The indices $i$, $j$, and $k$ refer to the sum-frequency, visible, and infrared 
 ## Fresnel post-processing
 
 This optional optical step reads reduced complex component spectra and produces
-squared amplitudes for SSP, PSS, SPS, and PPP. It does not calculate the molecular
-response or calibrate an absolute susceptibility.
+squared amplitudes for SSP, PSS, SPS, and PPP spectra.
 
 ### Fresnel JSON options
 
@@ -376,7 +379,7 @@ $$
 \widetilde\chi_q(\widetilde\nu)=R_q(\widetilde\nu)+iI_q(\widetilde\nu).
 $$
 
-Inputs are `wavenumber, imaginary, real`; an optional fourth column is ignored. Frequency is taken from `zzz`. 
+Inputs are `wavenumber`, `imaginary`, `real`; an optional fourth column is ignored. Frequency is taken from `zzz`. 
 
 $$
 \widetilde\nu=\widetilde\nu_0-\Delta\widetilde\nu,
@@ -405,7 +408,7 @@ $$
 X_q=[R_q+B]+iI_q,\qquad X_{zxx}=X_{xzx}.
 $$
 
-The code does not read a separate `zxx` spectrum. A shifted zero infrared wavenumber is rejected because its wavelength is undefined.
+The code does not read a separate `zxx` spectrum. 
 
 ### Optical model and local-field factors
 
@@ -422,7 +425,7 @@ n_i(\nu)=\left[\frac{n_2(\nu)^4+5n_2(\nu)^2}{4n_2(\nu)^2+2}\right]^{1/2},
 $$
 
 $$
-\gamma=\arcsin\left(\frac{n_1\sin\theta}{n_2}\right).
+\gamma=\sin^{-1}\left(\frac{n_1\sin\theta}{n_2}\right).
 $$
 
 Angles are measured from the surface normal, with JSON incidence angles converted from degrees to radians.
@@ -443,11 +446,11 @@ $$
 These complex factors change both magnitude and phase. For visible incidence $\beta_1$ and infrared incidence $\beta_2$,
 
 $$
-\beta=\arcsin\left[\frac{\nu_{\mathrm{vis}}\sin\beta_1+
+\beta=\sin^{-1}\left[\frac{\nu_{\mathrm{vis}}\sin\beta_1+
 \nu_{\mathrm{IR}}\sin\beta_2}{\nu_{\mathrm{SFG}}}\right].
 $$
 
-Write $L_{ab}^{(1)}=L_{ab}(\nu_{\mathrm{vis}},\beta_1)$,
+$L_{ab}^{(1)}=L_{ab}(\nu_{\mathrm{vis}},\beta_1)$,
 $L_{ab}^{(2)}=L_{ab}(\nu_{\mathrm{IR}},\beta_2)$, and
 $L_{ab}^{(3)}=L_{ab}(\nu_{\mathrm{SFG}},\beta)$.
 

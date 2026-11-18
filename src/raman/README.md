@@ -35,33 +35,30 @@ OMP_NUM_THREADS=4 ./polarizability trajectory.lammpstrj mb-spec.json > polarizab
 |---|---|
 | `polarizability.dat` | Time [ps], αxx, αxy, αxz, αyy, αyz, αzz [Å³] |
 | `response.dat` | Lag time [ps], selected polarizability correlation [Å⁶] |
-| `spectrum.dat` | Wavenumber [cm⁻¹], reduced or Bose–Einstein-corrected Raman intensity [arbitrary units] |
-| `molecular_polarizabilities.dat` (optional) | Molecule index, time [ps], αxx, αxy, αxz, αyx, αyy, αyz, αzx, αzy, αzz [Å³] |
+| `spectrum.dat` | Wavenumber [cm⁻¹], intensity [arbitrary units] |
+| `molecular_polarizabilities.dat` | Molecule index, time [ps], αxx, αxy, αxz, αyx, αyy, αyz, αzx, αzy, αzz [Å³] |
 
 
 ## JSON options
 
-Put all settings inside `RAMAN`. 
-**Remove the `//` comments before saving this JSONC example as an input JSON file.**
-
 ```jsonc
 {
   "RAMAN": {
-    "box": [0.0,19.65,0.0,19.65,0.0,19.65],	    // Required cell bounds in Å; XYZ imaging; spectrum requires positive volume 
+    "box": [0.0,19.65,0.0,19.65,0.0,19.65],	// Cell bounds in Å; XYZ imaging; spectrum requires positive volume 
     "imcon": 2,                                 // Cell convention: 1 cubic, 2 orthorhombic (default), 3 triclinic
-    "dump_frequency": 0.004,                    // Required frame interval in ps
+    "dump_frequency": 0.004,                    // Frame interval in ps
     "skip_initial_atoms": 0,                    // Omit leading atom records; retain O–H–H triplets; default 0
     "trajectory_duration_ps": 0.0,              // Duration read in ps; 0 reads all frames (default)
-    "int_max": 10.0,                            // Required exclusive correlation lag limit in ps
-    "temperature": 300.0,                       // Required temperature in K; sets reduced Raman frequency factor
-    "spectrum_transform_time_ps": 5.0,          // Required response duration transformed, in ps
+    "int_max": 10.0,                            // Exclusive correlation lag limit in ps
+    "temperature": 300.0,                       // Temperature in K; sets reduced Raman frequency factor
+    "spectrum_transform_time_ps": 5.0,          // Response duration transformed, in ps
     "tau": 0.0,                                 // Exponential damping time in ps; 0 disables it (default)
     "smoothing_fwhm_cm1": 15.0,                 // Gaussian spectral FWHM in cm⁻¹; omitted or 0 disables it
     "subtract_mean_polarizability": true,       // Remove mean tensor before correlation; default false
     "write_molecular_properties": false,        // Write molecular tensors; only with 1b; default false
     "raman_response": "depolarized",            // Choose "isotropic" or "depolarized"; default isotropic
-    "bose_einstein_correction": false,           // Output I_BE instead of I when true; default false
-    "polarizability_mb": "1b",                  // Required decomposition; see Polarizability below
+    "bose_einstein_correction": false,          // Output I_BE instead of I when true; default false
+    "polarizability_mb": "1b",                  // Decomposition; see Polarizability below
     "cutoff_1": 5.5,                            // Inner O–O switching radius in Å; default 5.5
     "cutoff_2": 7.5                             // Outer O–O switching radius in Å; default 7.5
   }

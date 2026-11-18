@@ -352,12 +352,9 @@ The Gaussian is truncated at three standard deviations.
 
 ## Scientific limitations
 
-**Periodic induction.** For NB-containing water modes, $T$ in Eq. (3) is
-evaluated with the internal cell-dependent TTM4 response. That response
-uses only diagonal cell lengths for imaging and assumes an orthorhombic
-cell; `polarizability` rejects `imcon=3` for these modes. It has no Ewald
-treatment, and these modes are not validated for periodic bulk simulations.
-Triclinic cells (`imcon=3`) are allowed only for the internal `1b` and
-`1b+2b` modes. The `nb`, `1b+nb`, and `1b+2b+nb` modes reject them because
-their internal NB model assumes orthorhombic cell lengths. 
+**Periodic induction.** 
+The `nb`, `1b+nb`, and `1b+2b+nb` modes evaluate $T$ using an internal TTM4 
+response that uses only orthorhombic cell lengths for imaging. These modes 
+lack Ewald treatment and have not been validated for periodic bulk simulations. 
+`polarizability` accepts triclinic cells (`imcon=3`) only for the internal `1b` and `1b+2b` modes.
 

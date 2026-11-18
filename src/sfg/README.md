@@ -46,26 +46,23 @@ Optionally apply Fresnel factors after calculating the component spectra:
 
 ## JSON options
 
-Put all settings inside `SFG`.
-**Remove the `//` comments before saving this JSONC example as an input file.**
-
 ```jsonc
 {
   "SFG": {
     "box": [0.0,24.79,0.0,24.79,0.0,100.0],      // Reference cell in Å; unused by current SFG stages
     "imcon": 2,                                  // Cell convention: 1 cubic, 2 orthorhombic (default), 3 triclinic
-    "dump_frequency": 0.004,                     // Required frame interval in ps
+    "dump_frequency": 0.004,                     // Frame interval in ps
     "skip_initial_atoms": 0,                     // Omit leading records; retain O–H–H triplets; default 0
     "trajectory_duration_ps": 0.0,               // Duration read in ps; 0 reads all frames (default)
-    "temperature": 300.0,                        // Required positive K; validated but unused in reduced transform
-    "int_max": 10.0,                             // Required maximum response lag in ps
-    "dipole_mb": "1b",                           // Required dipole decomposition; see Molecular properties below
-    "polarizability_mb": "1b",                   // Required: 1b or 1b+2b; no NB polarizability mode
+    "temperature": 300.0,                        // Positive K; validated but unused in reduced transform
+    "int_max": 10.0,                             // Maximum response lag in ps
+    "dipole_mb": "1b",                           // Dipole decomposition; see Molecular properties below
+    "polarizability_mb": "1b",                   // 1b or 1b+2b; no NB polarizability mode
     "cutoff_1": 5.5,                             // Inner O–O switching radius in Å; default 5.5
     "cutoff_2": 7.5,                             // Outer O–O switching radius in Å; default 7.5
-    "ijk": "xxz",                                // Required tensor component: zzz, zxx, xzx, or xxz
-    "zc1": 6.0,                                  // Required inner interface-weight radius in Å
-    "zc2": 8.0,                                  // Required outer interface-weight radius in Å
+    "ijk": "xxz",                                // Tensor component: zzz, zxx, xzx, or xxz
+    "zc1": 6.0,                                  // Inner interface-weight radius in Å
+    "zc2": 8.0,                                  // Outer interface-weight radius in Å
     "surface": "both",                           // positive, negative, or both (default); signed lower-interface weight
     "center_slab": true,                         // Center mass-weighted slab COM at origin; default false
     "shift_slab_by_half_cell": false,            // Shift/reimage by half z cell before centering; default false
@@ -75,12 +72,12 @@ Put all settings inside `SFG`.
     "include_cross_correlation": false,          // Include selected neighbor terms; default true
     "cross_correlation_cutoff": 4.0,             // Positive O–O neighbor cutoff in Å; default 4.0
     "cross_correlation_sampling_stride": 250,    // Positive neighbor-sampling frame stride; default 250
-    "subtract_initial_response": true,           // Required Boolean: subtract C(0) before transform if true
-    "spectrum_transform_time_ps": 4.0,           // Required response duration transformed, in ps
+    "subtract_initial_response": true,           // Boolean: subtract C(0) before transform if true
+    "spectrum_transform_time_ps": 4.0,           // Response duration transformed, in ps
     "tau": 0.0,                                  // Exponential damping time in ps; 0 disables it (default)
     "smoothing_fwhm_cm1": 10.0,                  // Gaussian FWHM in cm⁻¹; omitted/0 disables; smooth complex components
-    "spectrum_max_wavenumber_cm1": 4500.0,       // Required positive grid limit in cm⁻¹; points above Nyquist are aliased
-    "spectrum_num_wavenumbers": 4500             // Required integer ≥ 2; grid point count, including both endpoints
+    "spectrum_max_wavenumber_cm1": 4500.0,       // Grid limit in cm⁻¹; points above Nyquist are aliased
+    "spectrum_num_wavenumbers": 4500             // Integer ≥ 2; grid point count, including both endpoints
   }
 }
 ```
@@ -169,8 +166,7 @@ The switching function vanishes at the outer radius. For polarizability
 `1b+2b`, both polynomial and pair induction have full weight below the inner
 radius (default 5.5 Å), taper smoothly to zero at the outer radius (default
 7.5 Å), and are omitted at and beyond that radius. 
-It excludes higher-body induction, and differs from the published
-MB-alpha model, which retains long-range pair induction.
+It excludes higher-body induction.
 
 ## Dipole-polarizability correlation
 
@@ -348,28 +344,24 @@ squared amplitudes for SSP, PSS, SPS, and PPP spectra.
 
 ### Fresnel JSON options
 
-Use a separate JSON object, not the `SFG` object. **Remove comments before using this example.**
-
 ```jsonc
 {
-  "xxz_file": "xxz.dat",                // Required xxz component: wavenumber, imaginary, real
-  "zzz_file": "zzz.dat",                // Required zzz component; supplies frequency grid
-  "xzx_file": "xzx.dat",                // Required xzx component; zxx is assumed equal to xzx
-  "visible_incidence_angle_deg": 67.0,  // Required visible incidence angle in degrees from normal
-  "infrared_incidence_angle_deg": 63.0, // Required IR incidence angle in degrees from normal
-  "visible_wavelength_um": 0.8,         // Required visible wavelength in µm
-  "nonresonant_background": 0.0,        // Required real background added to every component; 0 for none
-  "redshift_cm1": 0.0,                  // Required shift subtracted from wavenumbers in cm⁻¹; 0 for none
-  "water_refractive_index_n_file": "fresnel_factors/refractive_index_water_n.txt", // Required [µm], real index table
-  "water_refractive_index_k_file": "fresnel_factors/refractive_index_water_k.txt", // Required [µm], extinction coefficient
-  "ssp_output_file": "sfg_ssp.dat",     // Required SSP output filename
-  "pss_output_file": "sfg_pss.dat",     // Required PSS output filename
-  "sps_output_file": "sfg_sps.dat",     // Required SPS output filename
-  "ppp_output_file": "sfg_ppp.dat"      // Required PPP output filename
+  "xxz_file": "xxz.dat",                // xxz component: wavenumber, imaginary, real
+  "zzz_file": "zzz.dat",                // zzz component; supplies frequency grid
+  "xzx_file": "xzx.dat",                // xzx component; zxx is assumed equal to xzx
+  "visible_incidence_angle_deg": 67.0,  // visible incidence angle in degrees from normal
+  "infrared_incidence_angle_deg": 63.0, // IR incidence angle in degrees from normal
+  "visible_wavelength_um": 0.8,         // visible wavelength in µm
+  "nonresonant_background": 0.0,        // real background added to every component; 0 for none
+  "redshift_cm1": 0.0,                  // shift subtracted from wavenumbers in cm⁻¹; 0 for none
+  "water_refractive_index_n_file": "fresnel_factors/refractive_index_water_n.txt", // [µm], real index table
+  "water_refractive_index_k_file": "fresnel_factors/refractive_index_water_k.txt", // [µm], extinction coefficient
+  "ssp_output_file": "sfg_ssp.dat",     // SSP output filename
+  "pss_output_file": "sfg_pss.dat",     // PSS output filename
+  "sps_output_file": "sfg_sps.dat",     // SPS output filename
+  "ppp_output_file": "sfg_ppp.dat"      // PPP output filename
 }
 ```
-
-The supplied optical tables are in `fresnel_factors/`
 
 ### Input convention and frequency conversion
 

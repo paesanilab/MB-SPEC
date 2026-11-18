@@ -65,13 +65,8 @@ OMP_NUM_THREADS=4 ./polarizability trajectory.lammpstrj mb-spec.json > polarizab
 }
 ```
 
-For `box`, six values are `[xmin,xmax,ymin,ymax,zmin,zmax]`; triclinic cells
-use nine matrix elements `[xx,xy,xz,yx,yy,yz,zx,zy,zz]`.
-Triclinic cells (`imcon=3`) are allowed only for the internal `1b` and
-`1b+2b` modes. The `nb`, `1b+nb`, and `1b+2b+nb` modes reject them because
-their internal NB model assumes orthorhombic cell lengths. This restriction
-applies to both XYZ and LAMMPS inputs. Externally calculated polarizability
-tensors can instead be supplied directly to `response`.
+For `box`, six values are `[xmin,xmax,ymin,ymax,zmin,zmax]`. 
+Triclinic cells use nine matrix elements `[xx,xy,xz,yx,yy,yz,zx,zy,zz]`.
 
 ## Trajectory input
 
@@ -166,9 +161,6 @@ and isolated-pair induction, switching both to zero at the outer cutoff. It
 excludes higher-body induction. This deliberately truncated approximation
 differs from the published MB-alpha two-body term in Eq. (2), which retains
 long-range induction [Medders and Paesani (2015), Section 2, Eq. (11)](../../literature/ct501131j.pdf).
-It also changes the previous `1b+2b` behavior, which included only the switched
-polynomial. Cutoff convergence should be checked for the system and spectrum
-of interest.
 
 ### Two-body switching
 
@@ -234,7 +226,6 @@ $$
 Each lag is normalized by its own number of time origins, $N-k$.
 For a symmetric tensor, the trace in Eq. (9) sums the three diagonal
 products and twice each of the three independent off-diagonal products.
-
 If `subtract_mean_polarizability` is enabled, the correlations use
 fluctuations about the trajectory-average tensor:
 
@@ -245,14 +236,10 @@ $$
 \boldsymbol\alpha(t_i)-\langle\boldsymbol\alpha\rangle_{\mathrm{traj}}.
 $$
 
-In this case, replace $\boldsymbol\alpha$ in Eq. (6) by
-$\delta\boldsymbol\alpha$ before forming the correlations. 
-
 ## Fourier transform and Raman spectrum
 
 The Fourier transform resolves the time dependence of the selected
-polarizability correlation into frequency components. With $C(t)$ denoting
-either correlation in Eq. (7), the continuous convention is
+polarizability correlation ($C(t)$) into frequency components. 
 
 $$
 \widetilde C(\omega)=\int_{-\infty}^{\infty}
@@ -279,11 +266,12 @@ S(\widetilde\nu).
 $$
 
 Here, $\widetilde\nu$ is the Raman-shift wavenumber in cm⁻¹,
-$\widetilde\nu_I=20500\;\mathrm{cm}^{-1}$ is the fixed incident laser
-wavenumber, $c$ is the speed of light in cm/s, $T$ is the
-temperature, $k_B$ is the Boltzmann constant, and $\hbar$ is the reduced
-Planck constant.
-$\mathcal A$ is a frequency-independent constant setting the arbitrary intensity scale.
+$\widetilde\nu_I=20500\;\mathrm{cm}^{-1}$ is the fixed incident laser wavenumber, 
+$c$ is the speed of light in cm/s, 
+$T$ is the temperature, 
+$k_B$ is the Boltzmann constant, 
+$\hbar$ is the reduced Planck constant,
+$\mathcal A$ is a frequency-independent constant setting the arbitrary intensity scale, and
 $S$ is the finite cosine transform defined below.
 
 Set `bose_einstein_correction` to `true` to output the Bose–Einstein-corrected
@@ -295,28 +283,14 @@ I_{\mathrm{BE}}(\widetilde\nu)=
 \frac{I(\widetilde\nu)}{2\pi c\widetilde\nu},
 $$
 
-where $I$ is defined in Eq. (13) and $2\pi c\widetilde\nu$ is the angular
-frequency in rad/s, using $c$ in cm/s. The correction applies to
-either response type before Gaussian smoothing. The zero-frequency output is
-set to zero, the limiting value for a finite transformed correlation.
-Omitting this option or setting it to `false` retains Eq. (13).
-The output remains two columns: wavenumber in cm⁻¹ and the selected intensity
-in arbitrary units.
-
+The correction applies to either response type before Gaussian smoothing. 
 The output is reported in arbitrary units, with no volume prefactor or absolute cross-section
-normalization. A positive JSON cell volume is nevertheless required by
-`spectrum`.
+normalization. 
 
 ### Spectral processing
 
-A finite trajectory supplies discrete correlation samples over a limited
-duration. `int_max` sets the exclusive lag limit; `spectrum_transform_time_ps`
-selects the response duration used for the transform and must satisfy
-`0 \lt spectrum_transform_time_ps \le int_max`. If `trajectory_duration_ps`
-is nonzero, `int_max` must also not exceed that duration. At least four
-response rows below `int_max` and two transformed samples are required.
-
-Exponential damping acts on the correlation before Fourier transformation.
+Exponential damping suppresses long-time contributions and broadens spectral features. 
+It acts on the correlation before Fourier transformation.
 For $C_k=C(k\Delta t)$, the samples used by the transform are
 
 $$
@@ -327,10 +301,6 @@ D_k=C_k
 \end{cases}
 $$
 
-Damping suppresses long-time contributions and broadens spectral features;
-$\Delta t$ and `tau` are both in ps. Both response types use the correlation
-without additional constant scaling. Removing the previous division by ten
-increases output intensities by a factor of ten without changing spectral shapes.
 
 For transform duration $T_{\mathrm{transform}}$, the sample count is
 
@@ -357,8 +327,7 @@ $$
 \quad n=0,\ldots,N_T-1.
 $$
 
-Here $c_{\mathrm{cm/ps}}$ is the speed of light in cm/ps. Time remains in ps
-throughout the transform, so $S$ has units Å⁶·ps.
+$S$ has units Å⁶·ps.
 The last selected sample, $D_{N_T-1}$, is excluded from the sum; the
 implementation assumes the correlation has decayed to zero at the upper
 integration limit.
@@ -388,3 +357,7 @@ evaluated with the internal cell-dependent TTM4 response. That response
 uses only diagonal cell lengths for imaging and assumes an orthorhombic
 cell; `polarizability` rejects `imcon=3` for these modes. It has no Ewald
 treatment, and these modes are not validated for periodic bulk simulations.
+Triclinic cells (`imcon=3`) are allowed only for the internal `1b` and
+`1b+2b` modes. The `nb`, `1b+nb`, and `1b+2b+nb` modes reject them because
+their internal NB model assumes orthorhombic cell lengths. 
+

@@ -9,7 +9,7 @@ MB-SPEC requires Autotools, a C++ compiler with OpenMP support, GSL, and Intel
 MKL with its LAPACKE headers and libraries. From the repository root:
 
 ```bash
-./autogen.sh
+autoreconf -fi
 ./configure CXX=c++ CC=cc CXXFLAGS="-O2 -fopenmp" CFLAGS="-O2 -fopenmp"
 make -j4
 ```

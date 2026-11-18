@@ -26,9 +26,9 @@ All variables for `INFRARED`, `RAMAN`, `SFG`, and `POWER` are specified in the J
 ## IR
 
 ```bash
-./dipole trajectory.lammpstrj mb-spec.json > dipole.dat
-./response dipole.dat mb-spec.json > response.dat
-./spectrum response.dat mb-spec.json > spectrum.dat
+./dipole trajectory.lammpstrj ir.json > dipole.dat
+./response dipole.dat ir.json > response.dat
+./spectrum response.dat ir.json > spectrum.dat
 ```
 
 Needs `INFRARED` JSON and coordinates; external dipole mode also needs dipoles.
@@ -36,9 +36,9 @@ Needs `INFRARED` JSON and coordinates; external dipole mode also needs dipoles.
 ## Raman
 
 ```bash
-./polarizability trajectory.lammpstrj mb-spec.json > polarizability.dat
-./response polarizability.dat mb-spec.json > response.dat
-./spectrum response.dat mb-spec.json > spectrum.dat
+./polarizability trajectory.lammpstrj raman.json > polarizability.dat
+./response polarizability.dat raman.json > response.dat
+./spectrum response.dat raman.json > spectrum.dat
 ```
 
 Needs `RAMAN` JSON and coordinates.
@@ -56,8 +56,8 @@ Needs `SFG` JSON, coordinates, and dipoles.
 ## Power
 
 ```bash
-./response trajectory.lammpstrj mb-spec.json > response.dat
-./spectrum response.dat mb-spec.json > spectrum.dat
+./response trajectory.lammpstrj power.json > response.dat
+./spectrum response.dat power.json > spectrum.dat
 ```
 
 Needs `POWER` JSON and velocities. 

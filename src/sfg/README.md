@@ -205,7 +205,7 @@ For example, `xxz` uses $[\mu_z\alpha_{xx}+\mu_z\alpha_{yy}]/2$.
 
 ### Truncated cross-correlation partners
 
-For each origin $m$ and central molecule $a$ with $g_a^m\ne0$, candidates $b\ne a$ first require $r_{ab}(m)\lt 2R$, with $R=\mathrm{cross\_correlation\_cutoff}$. A partner is retained if
+For each origin $m$ and central molecule $a$ with $g_a^m\ne0$, candidates $b\ne a$ first require $r_{ab}(m)\lt 2R$, where $R$ is the `cross_correlation_cutoff`. A partner is retained if
 
 $$
 \overline r_{ab,m}=\frac1Q\sum_{\substack{q=0,h,2h,\ldots\\m+q\le L_m}}
@@ -213,7 +213,7 @@ $$
 \qquad L_m=\min(N-1,m+N_{\mathrm{lag}}).
 $$
 
-Here $h=\mathrm{cross\_correlation\_sampling\_stride}$ and $Q$ counts sampled terms. The central oxygen is held at time $m$. Distances are minimum-imaged using the cell at the origin frame. Holding the central oxygen fixed defines an asymmetric, time-dependent partner selection and truncates the full system correlation.
+Here, $h$ is the `cross_correlation_sampling_stride` and $Q$ counts sampled terms. The central oxygen is held at time $m$. Distances are minimum-imaged using the cell at the origin frame. Holding the central oxygen fixed defines an asymmetric, time-dependent partner selection and truncates the full system correlation.
 
 ### Accumulation and normalization
 

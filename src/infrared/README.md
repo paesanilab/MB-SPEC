@@ -39,26 +39,23 @@ OMP_NUM_THREADS=4 ./dipole trajectory.lammpstrj mb-spec.json > dipole.dat
 
 ## JSON options
 
-Put all settings inside `INFRARED`.
-**remove the `//` comments before saving it as an input JSON file.**
-
 ```jsonc
 {
   "INFRARED": {
-    "box": [0.0,19.65,0.0,19.65,0.0,19.65], // Required cell bounds in Å; sets IR normalization volume
+    "box": [0.0,19.65,0.0,19.65,0.0,19.65], // Cell bounds in Å; sets IR normalization volume
     "imcon": 2,                             // Cell convention: 1 cubic, 2 orthorhombic (default), 3 triclinic
-    "dump_frequency": 0.004,                // Required frame interval in ps
+    "dump_frequency": 0.004,                // Frame interval in ps
     "skip_initial_atoms": 0,                // Omit this many leading atom records per frame; default 0
     "trajectory_duration_ps": 0.0,          // Duration read in ps; 0 reads all frames (default)
-    "int_max": 10.0,                        // Required exclusive correlation lag limit in ps
-    "temperature": 300.0,                   // Required temperature in K; sets IR intensity prefactor
-    "spectrum_transform_time_ps": 10.0,     // Required response duration in ps
+    "int_max": 10.0,                        // Exclusive correlation lag limit in ps
+    "temperature": 300.0,                   // Temperature in K; sets IR intensity prefactor
+    "spectrum_transform_time_ps": 10.0,     // Response duration in ps
     "tau": 0.0,                             // Exponential damping time in ps; 0 disables it (default)
     "smoothing_fwhm_cm1": 15.0,             // Gaussian spectral FWHM in cm⁻¹; 0 disables it
     "subtract_mean_dipole": false,          // Remove the mean total dipole before correlation; default false
     "write_molecular_properties": false,    // Write molecular_dipoles.dat; only DMS=true with 1b; default false
     "DMS": false,                           // false: external dipoles (default); true: internal LTP2011 water surface
-    "dipole_mb": "1b",                      // Required dipole source
+    "dipole_mb": "1b",                      // Dipole source
     "cutoff_1": 5.5,                        // Inner O–O switching radius in Å for 2B terms; default 5.5
     "cutoff_2": 7.5                         // Outer O–O switching radius in Å for 2B terms; default 7.5
   }
@@ -135,8 +132,8 @@ $$
 The effective charges are fifth-order polynomials in 15 auxiliary variables formed from exponentiated interatomic distances. 
 The basis contains 1,826 terms for hydrogen charges and 1,052 for oxygen charges, with symmetry under permutations of equivalent atoms. 
 The fit used 42,495 dimer configurations with counterpoise-corrected RI-MP2/aug-cc-pVTZ two-body dipoles. 
-`dip_poly2b5::eval` returns the unswitched polynomial dipole and the IR caller applies $s(r_{ij})$. 
 
+`dip_poly2b5::eval` returns the unswitched polynomial dipole and the IR caller applies $s(r_{ij})$. 
 The explicit two-body switching function is
 
 $$
@@ -204,7 +201,6 @@ $$
 
 Each lag is normalized by its own number of available time origins, $N-k$.
 Longer lags therefore contain fewer contributions to the average.
-
 If `subtract_mean_dipole` is enabled, the correlation is calculated from
 fluctuations about the trajectory mean, replacing $\mathbf M$ in Eq. (9) by
 $\delta\mathbf M$:
@@ -246,7 +242,7 @@ $T$ is the temperature,
 $V$ is the system volume, 
 $\epsilon_0$ is the vacuum permittivity, 
 and $c$ is the speed of light. 
-Equation (13) can also be interpreted using the Kubo-transformed dipole
+This equation can also be interpreted using the Kubo-transformed dipole
 correlation of quantum linear-response theory, with the classical correlation
 used as an approximation. 
 MB-SPEC applies no additional frequency-dependent quantum correction factor.

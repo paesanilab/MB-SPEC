@@ -5,9 +5,8 @@ and mutually induced dipoles. The dipole moment describes the system's charge
 separation; the polarizability describes how that dipole changes under an
 applied electric field.
 
-In MB-SPEC, the relevant implementation is the TTM4-based induction model. The
-MB-mu/MB-alpha paper calls this **TTM4-Ind**, distinguishing it from the complete
-TTM4-F water potential. See [Medders and Paesani, Section 2](https://doi.org/10.1021/ct501131j).
+MB-SPEC implements **TTM4-Ind**, the TTM4-based induction model described by 
+[Medders and Paesani (2015)](https://doi.org/10.1021/ct501131j), rather than the full **TTM4-F** water potential. 
 
 ## Dipole calculation
 

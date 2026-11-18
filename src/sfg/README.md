@@ -228,12 +228,12 @@ S_\ell^{\mathrm{AC}}=\sum_{m=0}^{N-\ell-1}\sum_{a\in C_m}
  w_a^{mn}B_{aa}^{mn},
 $$
 
-$$
+```math
 w_a^{mn}=\begin{cases}
 (g_a^m)^3,&\mathrm{time\_dependent\_switch=false},\\
 g_a^m(g_a^n)^2,&\mathrm{time\_dependent\_switch=true},
 \end{cases}
-$$
+```
 
 $$
 S_\ell^{\mathrm{CC}}=\sum_{m=0}^{N-\ell-1}\sum_{a\in C_m}\sum_{b\in P_{ma}}
@@ -270,7 +270,6 @@ where $I_{\mathrm{shift}}=1$ for `subtract_initial_response=true`, otherwise zer
 
 $$
 N_T=\left\lfloor\frac{T}{\Delta t}+10^{-10}\right\rfloor,
-\qquad T=mathrm{spectrum\_transform\_time\_ps}.
 $$
 
 $$
@@ -281,12 +280,12 @@ $$
 A_s(\nu)=\sum_{n=1}^{N_T-2}\widehat C_n\sin(2\pi\nu t_n).
 $$
 
-The dimensionless $10^{-10}$ prevents floating-point rounding just below an
-integer from dropping one sample. The final otherwise eligible sample is excluded. For $K=\mathrm{spectrum\_num\_wavenumbers}$,
+where $T = $ `spectrum_transform_time_ps`.
+The final otherwise eligible sample is excluded. For $K =$ `spectrum_num_wavenumbers`,
 
 $$
 \widetilde\nu_k=\frac{k\widetilde\nu_{\max}}{K-1},\qquad
-\nu_k=c\widetilde\nu_k,\qquad c=2.99792458\times10^{-2}\;\mathrm{cm\,ps}^{-1}.
+\nu_k=c\widetilde\nu_k,
 $$
 
 $$
@@ -384,11 +383,10 @@ $$
 \qquad\Delta\widetilde\nu=\mathrm{redshift\_cm1}.
 $$
 
-The optical frequency conversion uses the shared $c=2.99792458\times10^8$ m/s. Frequencies below are ordinary frequencies in GHz, with wavelengths in µm:
+Frequencies below are ordinary frequencies in GHz, with wavelengths in µm:
 
 $$
 \nu_{\mathrm{vis}}=\frac{c}{1000\lambda_{\mathrm{vis}}},
-\qquad\lambda_{\mathrm{vis}}=\mathrm{visible\_wavelength\_um},
 $$
 
 $$

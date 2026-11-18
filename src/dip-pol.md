@@ -6,12 +6,13 @@ separation; the polarizability describes how that dipole changes under an
 applied electric field.
 
 MB-SPEC implements **TTM4-Ind**, the TTM4-based induction model described by 
-[Medders and Paesani (2015)](https://doi.org/10.1021/ct501131j), rather than the full **TTM4-F** water potential. 
+[Medders and Paesani (2015)](https://doi.org/10.1021/ct501131j), rather than the full **TTM4-F** 
+[water potential](https://doi.org/10.1063/1.2895750). 
 
 ## Dipole calculation
 
 Each water molecule has four electrostatic sites: O, H, H, and a virtual M site
-near the oxygen. The code obtains geometry-dependent charges from the
+near the oxygen. MB-SPEC obtains geometry-dependent charges from the
 Partridge–Schwenke dipole surface and redistributes them onto the H and M sites.
 
 The permanent charges produce an electric field at the polarizable sites.
@@ -72,7 +73,7 @@ $$
 +\underbrace{\sum_i\boldsymbol\mu_i^{\mathrm{ind}}}_{\text{induced}}.
 $$
 
-The distinction matters in the code: `ttm4_es::dip` returns permanent plus
+`ttm4_es::dip` returns permanent plus
 induced dipoles, whereas `dipind` and the separate `ttm4_dip` routine return
 only the induced contribution. Dipole outputs are in Debye. See
 [ttm4-es.cpp](tools/ttm4-es.cpp) and [ttm4-dip.cpp](tools/ttm4-dip.cpp).
@@ -106,9 +107,8 @@ $$
 $$
 
 where $\mathbf e_b$ is the unit vector along Cartesian direction $b$.
-
 Polarizability therefore follows from the same coupled dipole response.
-MB-SPEC evaluates it analytically from the polarization matrix; it does not
+MB-SPEC evaluates it analytically from the polarization matrix. It does not
 perform separate finite-field calculations. See `ttm4_es::ptensor` in
 [ttm4-es.cpp](tools/ttm4-es.cpp).
 
@@ -121,7 +121,7 @@ a_{\mathrm M}=0.
 $$
 
 Although these site parameters are isotropic and constant, their interactions
-produce a geometry-dependent molecular or system polarizability tensor,
+produce a geometry-dependent molecular polarizability tensor,
 reported in Å³.
 
 ## Use in MB-SPEC

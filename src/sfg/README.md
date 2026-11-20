@@ -29,10 +29,9 @@ Optionally apply Fresnel factors after calculating the component spectra:
 | Temperature | K|
 | Frequency $\nu$, angular frequency $\omega$ | ps⁻¹ and rad/ps  |
 | Wavenumber $\widetilde\nu$, smoothing FWHM, Fresnel redshift | cm⁻¹ |
-| Reduced complex signal | Uncalibrated; equations retain D·Å³ × ps × cm⁻¹ |
-| Squared magnitude and Fresnel intensity | Squared reduced-signal units |
+| Reduced complex signal | D·Å³ × ps × cm⁻¹ |
 | Fresnel wavelengths and optical frequencies | µm and GHz |
-| Fresnel incidence angles | Degrees from the surface normal in JSON |
+| Fresnel incidence angles (in JSON) | Degrees from the surface normal |
 | Refractive index and extinction coefficient | Dimensionless |
 
 ## Outputs
@@ -81,9 +80,6 @@ Optionally apply Fresnel factors after calculating the component spectra:
   }
 }
 ```
-
-The 4500 cm⁻¹ upper limit exceeds the approximately
-4169 cm⁻¹ Nyquist limit at 4 fs sampling. 
 
 ## Trajectory input
 

@@ -1,6 +1,6 @@
 {
   "POWER": {
-    "box": [0.0, 10.0, 0.0, 10.0, 0.0, 10.0],
+    "box": [0.00, 19.66, 0.00, 19.66, 0.00, 19.66],
     "imcon": 2,
     "dump_frequency": 0.004,
     "trajectory_duration_ps": 0.0,

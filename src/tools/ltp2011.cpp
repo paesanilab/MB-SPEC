@@ -57,9 +57,9 @@ double muOH(const double& r)
      const size_t n_coeffs(8);
 
      double powers_a[n_coeffs];
-
      powers_a[0] = a;
-     for(size_t i = 0; i < n_coeffs; ++i)
+
+     for(size_t i = 1; i < n_coeffs; ++i)
 	 powers_a[i] = powers_a[i-1]*a;
     
      double coeffs[n_coeffs];

@@ -1,0 +1,12 @@
+.build/
+__pycache__/
+Makefile
+Makefile.in
+.deps/
+.dirstamp
+unittest-ir
+unittest-raman
+unittest-power
+unittest-sfg
+*.log
+*.trs

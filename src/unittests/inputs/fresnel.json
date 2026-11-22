@@ -1,0 +1,16 @@
+{
+  "xxz_file": "xxz.dat",
+  "zzz_file": "zzz.dat",
+  "xzx_file": "xzx.dat",
+  "visible_incidence_angle_deg": 67.0,
+  "infrared_incidence_angle_deg": 63.0,
+  "visible_wavelength_um": 0.8,
+  "nonresonant_background": 0.0,
+  "redshift_cm1": 0.0,
+  "water_refractive_index_n_file": "refractive_index_water_n.txt",
+  "water_refractive_index_k_file": "refractive_index_water_k.txt",
+  "ssp_output_file": "sfg_ssp.dat",
+  "pss_output_file": "sfg_pss.dat",
+  "sps_output_file": "sfg_sps.dat",
+  "ppp_output_file": "sfg_ppp.dat"
+}

@@ -1,0 +1,16 @@
+{
+  "POWER": {
+    "box": [0.0, 10.0, 0.0, 10.0, 0.0, 10.0],
+    "imcon": 2,
+    "dump_frequency": 0.004,
+    "trajectory_duration_ps": 0.0,
+
+    "int_max": 10.0,
+    "skip_initial_atoms": 1,
+    "subtract_mean_velocity": false,
+
+    "spectrum_transform_time_ps": 10.0,
+    "tau": 0.0,
+    "smoothing_fwhm_cm1": 15.0
+  }
+}

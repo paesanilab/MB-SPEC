@@ -1,0 +1,839 @@
+{
+  "generated": "2026-11-22T19:26:08.872255+00:00",
+  "cases": [
+    {
+      "name": "power-xyz",
+      "input": "f-water.xyz",
+      "frames": 4,
+      "extended": false,
+      "outputs": [
+        {
+          "file": "response.dat",
+          "columns": [
+            "time_ps",
+            "velocity_correlation"
+          ],
+          "rows": [
+            [
+              0.0,
+              0.461918
+            ],
+            [
+              0.004,
+              -0.215479
+            ],
+            [
+              0.008,
+              0.258817
+            ],
+            [
+              0.012,
+              -0.0908559
+            ]
+          ]
+        },
+        {
+          "file": "spectrum.dat",
+          "columns": [
+            "wavenumber_cm-1",
+            "normalized_intensity"
+          ],
+          "rows": [
+            [
+              0.0,
+              47622500000.0
+            ],
+            [
+              1191.3,
+              31380300000.0
+            ],
+            [
+              2382.6,
+              -2836510000.0
+            ],
+            [
+              3573.9,
+              157500000000.0
+            ]
+          ]
+        }
+      ],
+      "config": {
+        "POWER": {
+          "box": [
+            0.0,
+            10.0,
+            0.0,
+            10.0,
+            0.0,
+            10.0
+          ],
+          "imcon": 2,
+          "dump_frequency": 0.004,
+          "trajectory_duration_ps": 0.0,
+          "int_max": 0.016,
+          "skip_initial_atoms": 1,
+          "subtract_mean_velocity": false,
+          "spectrum_transform_time_ps": 0.016,
+          "tau": 0.0,
+          "smoothing_fwhm_cm1": 0.0
+        }
+      },
+      "reuse": {},
+      "cell": null,
+      "covers": [
+        "XYZ velocities",
+        "skip_initial_atoms=1",
+        "subtract_mean_velocity=false"
+      ]
+    },
+    {
+      "name": "power-lammps",
+      "input": "f-water.lammpstrj",
+      "frames": 4,
+      "extended": false,
+      "outputs": [
+        {
+          "file": "response.dat",
+          "columns": [
+            "time_ps",
+            "velocity_correlation"
+          ],
+          "rows": [
+            [
+              0.0,
+              0.461918
+            ],
+            [
+              0.004,
+              -0.215479
+            ],
+            [
+              0.008,
+              0.258817
+            ],
+            [
+              0.012,
+              -0.0908559
+            ]
+          ]
+        },
+        {
+          "file": "spectrum.dat",
+          "columns": [
+            "wavenumber_cm-1",
+            "normalized_intensity"
+          ],
+          "rows": [
+            [
+              0.0,
+              47622500000.0
+            ],
+            [
+              1191.3,
+              31380300000.0
+            ],
+            [
+              2382.6,
+              -2836510000.0
+            ],
+            [
+              3573.9,
+              157500000000.0
+            ]
+          ]
+        }
+      ],
+      "config": {
+        "POWER": {
+          "box": [
+            0.0,
+            10.0,
+            0.0,
+            10.0,
+            0.0,
+            10.0
+          ],
+          "imcon": 2,
+          "dump_frequency": 0.004,
+          "trajectory_duration_ps": 0.0,
+          "int_max": 0.016,
+          "skip_initial_atoms": 1,
+          "subtract_mean_velocity": false,
+          "spectrum_transform_time_ps": 0.016,
+          "tau": 0.0,
+          "smoothing_fwhm_cm1": 0.0
+        }
+      },
+      "reuse": {
+        "spectrum.dat": "power-xyz/spectrum.dat"
+      },
+      "cell": null,
+      "covers": [
+        "LAMMPS velocities",
+        "skip_initial_atoms=1"
+      ]
+    },
+    {
+      "name": "power-sampling",
+      "input": "f-water.xyz",
+      "frames": 4,
+      "extended": false,
+      "outputs": [
+        {
+          "file": "response.dat",
+          "columns": [
+            "time_ps",
+            "velocity_correlation"
+          ],
+          "rows": [
+            [
+              0.0,
+              0.461918
+            ],
+            [
+              0.008,
+              -0.215479
+            ]
+          ]
+        },
+        {
+          "file": "spectrum.dat",
+          "columns": [
+            "wavenumber_cm-1",
+            "normalized_intensity"
+          ],
+          "rows": [
+            [
+              0.0,
+              4018710000.0
+            ],
+            [
+              1389.85,
+              87928400000.0
+            ]
+          ]
+        }
+      ],
+      "config": {
+        "POWER": {
+          "box": [
+            0.0,
+            10.0,
+            0.0,
+            10.0,
+            0.0,
+            10.0
+          ],
+          "imcon": 2,
+          "dump_frequency": 0.008,
+          "trajectory_duration_ps": 0.0,
+          "int_max": 0.016,
+          "skip_initial_atoms": 1,
+          "subtract_mean_velocity": false,
+          "spectrum_transform_time_ps": 0.016,
+          "tau": 0.0,
+          "smoothing_fwhm_cm1": 0.0
+        }
+      },
+      "reuse": {},
+      "cell": null,
+      "covers": [
+        "dump_frequency=0.008"
+      ]
+    },
+    {
+      "name": "power-transform",
+      "input": "f-water.xyz",
+      "frames": 4,
+      "extended": false,
+      "outputs": [
+        {
+          "file": "response.dat",
+          "columns": [
+            "time_ps",
+            "velocity_correlation"
+          ],
+          "rows": [
+            [
+              0.0,
+              0.461918
+            ],
+            [
+              0.004,
+              -0.215479
+            ],
+            [
+              0.008,
+              0.258817
+            ],
+            [
+              0.012,
+              -0.0908559
+            ]
+          ]
+        },
+        {
+          "file": "spectrum.dat",
+          "columns": [
+            "wavenumber_cm-1",
+            "normalized_intensity"
+          ],
+          "rows": [
+            [
+              0.0,
+              71209300000.0
+            ],
+            [
+              1667.82,
+              -11686200000.0
+            ],
+            [
+              3335.64,
+              125978000000.0
+            ]
+          ]
+        }
+      ],
+      "config": {
+        "POWER": {
+          "box": [
+            0.0,
+            10.0,
+            0.0,
+            10.0,
+            0.0,
+            10.0
+          ],
+          "imcon": 2,
+          "dump_frequency": 0.004,
+          "trajectory_duration_ps": 0.0,
+          "int_max": 0.016,
+          "skip_initial_atoms": 1,
+          "subtract_mean_velocity": false,
+          "spectrum_transform_time_ps": 0.012,
+          "tau": 0.0,
+          "smoothing_fwhm_cm1": 0.0
+        }
+      },
+      "reuse": {
+        "response.dat": "power-xyz/response.dat"
+      },
+      "cell": null,
+      "covers": [
+        "spectrum_transform_time_ps=0.012"
+      ]
+    },
+    {
+      "name": "power-smoothing",
+      "input": "f-water.xyz",
+      "frames": 4,
+      "extended": false,
+      "outputs": [
+        {
+          "file": "response.dat",
+          "columns": [
+            "time_ps",
+            "velocity_correlation"
+          ],
+          "rows": [
+            [
+              0.0,
+              0.461918
+            ],
+            [
+              0.004,
+              -0.215479
+            ],
+            [
+              0.008,
+              0.258817
+            ],
+            [
+              0.012,
+              -0.0908559
+            ]
+          ]
+        },
+        {
+          "file": "spectrum.dat",
+          "columns": [
+            "wavenumber_cm-1",
+            "normalized_intensity"
+          ],
+          "rows": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1191.3,
+              31380300000.0
+            ],
+            [
+              2382.6,
+              -2836510000.0
+            ],
+            [
+              3573.9,
+              157500000000.0
+            ]
+          ]
+        }
+      ],
+      "config": {
+        "POWER": {
+          "box": [
+            0.0,
+            10.0,
+            0.0,
+            10.0,
+            0.0,
+            10.0
+          ],
+          "imcon": 2,
+          "dump_frequency": 0.004,
+          "trajectory_duration_ps": 0.0,
+          "int_max": 0.016,
+          "skip_initial_atoms": 1,
+          "subtract_mean_velocity": false,
+          "spectrum_transform_time_ps": 0.016,
+          "tau": 0.0,
+          "smoothing_fwhm_cm1": 15.0
+        }
+      },
+      "reuse": {
+        "response.dat": "power-xyz/response.dat"
+      },
+      "cell": null,
+      "covers": [
+        "smoothing_fwhm_cm1=15.0"
+      ]
+    },
+    {
+      "name": "power-duration",
+      "input": "f-water.xyz",
+      "frames": 6,
+      "extended": false,
+      "outputs": [
+        {
+          "file": "response.dat",
+          "columns": [
+            "time_ps",
+            "velocity_correlation"
+          ],
+          "rows": [
+            [
+              0.0,
+              0.475453
+            ],
+            [
+              0.004,
+              -0.166475
+            ],
+            [
+              0.008,
+              0.233172
+            ],
+            [
+              0.012,
+              -0.167613
+            ]
+          ]
+        },
+        {
+          "file": "spectrum.dat",
+          "columns": [
+            "wavenumber_cm-1",
+            "normalized_intensity"
+          ],
+          "rows": [
+            [
+              0.0,
+              34505800000.0
+            ],
+            [
+              1191.3,
+              58781400000.0
+            ],
+            [
+              2382.6,
+              -10042000000.0
+            ],
+            [
+              3573.9,
+              143862000000.0
+            ]
+          ]
+        }
+      ],
+      "config": {
+        "POWER": {
+          "box": [
+            0.0,
+            10.0,
+            0.0,
+            10.0,
+            0.0,
+            10.0
+          ],
+          "imcon": 2,
+          "dump_frequency": 0.004,
+          "trajectory_duration_ps": 0.016,
+          "int_max": 0.016,
+          "skip_initial_atoms": 1,
+          "subtract_mean_velocity": false,
+          "spectrum_transform_time_ps": 0.016,
+          "tau": 0.0,
+          "smoothing_fwhm_cm1": 0.0
+        }
+      },
+      "reuse": {},
+      "cell": null,
+      "covers": [
+        "trajectory_duration_ps=0.016"
+      ]
+    },
+    {
+      "name": "power-lags",
+      "input": "f-water.xyz",
+      "frames": 6,
+      "extended": false,
+      "outputs": [
+        {
+          "file": "response.dat",
+          "columns": [
+            "time_ps",
+            "velocity_correlation"
+          ],
+          "rows": [
+            [
+              0.0,
+              0.490244
+            ],
+            [
+              0.004,
+              -0.0959055
+            ],
+            [
+              0.008,
+              0.227617
+            ],
+            [
+              0.012,
+              -0.343708
+            ],
+            [
+              0.016,
+              0.1438
+            ]
+          ]
+        },
+        {
+          "file": "spectrum.dat",
+          "columns": [
+            "wavenumber_cm-1",
+            "normalized_intensity"
+          ],
+          "rows": [
+            [
+              0.0,
+              8102720000.0
+            ],
+            [
+              1191.3,
+              108690000000.0
+            ],
+            [
+              2382.6,
+              -37403100000.0
+            ],
+            [
+              3573.9,
+              134516000000.0
+            ]
+          ]
+        }
+      ],
+      "config": {
+        "POWER": {
+          "box": [
+            0.0,
+            10.0,
+            0.0,
+            10.0,
+            0.0,
+            10.0
+          ],
+          "imcon": 2,
+          "dump_frequency": 0.004,
+          "trajectory_duration_ps": 0.0,
+          "int_max": 0.02,
+          "skip_initial_atoms": 1,
+          "subtract_mean_velocity": false,
+          "spectrum_transform_time_ps": 0.016,
+          "tau": 0.0,
+          "smoothing_fwhm_cm1": 0.0
+        }
+      },
+      "reuse": {},
+      "cell": null,
+      "covers": [
+        "int_max=0.020"
+      ]
+    },
+    {
+      "name": "power-fluoride-included",
+      "input": "f-water.lammpstrj",
+      "frames": 4,
+      "extended": false,
+      "outputs": [
+        {
+          "file": "response.dat",
+          "columns": [
+            "time_ps",
+            "velocity_correlation"
+          ],
+          "rows": [
+            [
+              0.0,
+              0.459033
+            ],
+            [
+              0.004,
+              -0.218326
+            ],
+            [
+              0.008,
+              0.256424
+            ],
+            [
+              0.012,
+              -0.0939449
+            ]
+          ]
+        },
+        {
+          "file": "spectrum.dat",
+          "columns": [
+            "wavenumber_cm-1",
+            "normalized_intensity"
+          ],
+          "rows": [
+            [
+              0.0,
+              45369100000.0
+            ],
+            [
+              1191.3,
+              31603100000.0
+            ],
+            [
+              2382.6,
+              -3005580000.0
+            ],
+            [
+              3573.9,
+              158573000000.0
+            ]
+          ]
+        }
+      ],
+      "config": {
+        "POWER": {
+          "box": [
+            0.0,
+            10.0,
+            0.0,
+            10.0,
+            0.0,
+            10.0
+          ],
+          "imcon": 2,
+          "dump_frequency": 0.004,
+          "trajectory_duration_ps": 0.0,
+          "int_max": 0.016,
+          "skip_initial_atoms": 0,
+          "subtract_mean_velocity": false,
+          "spectrum_transform_time_ps": 0.016,
+          "tau": 0.0,
+          "smoothing_fwhm_cm1": 0.0
+        }
+      },
+      "reuse": {},
+      "cell": null,
+      "covers": [
+        "skip_initial_atoms=0"
+      ]
+    },
+    {
+      "name": "power-mean-true",
+      "input": "f-water.xyz",
+      "frames": 4,
+      "extended": false,
+      "outputs": [
+        {
+          "file": "response.dat",
+          "columns": [
+            "time_ps",
+            "velocity_correlation"
+          ],
+          "rows": [
+            [
+              0.0,
+              0.373896
+            ],
+            [
+              0.004,
+              -0.332911
+            ],
+            [
+              0.008,
+              0.170795
+            ],
+            [
+              0.012,
+              -0.0906495
+            ]
+          ]
+        },
+        {
+          "file": "spectrum.dat",
+          "columns": [
+            "wavenumber_cm-1",
+            "normalized_intensity"
+          ],
+          "rows": [
+            [
+              0.0,
+              -21109200000.0
+            ],
+            [
+              1191.3,
+              7392120000.0
+            ],
+            [
+              2382.6,
+              16237400000.0
+            ],
+            [
+              3573.9,
+              196780000000.0
+            ]
+          ]
+        }
+      ],
+      "config": {
+        "POWER": {
+          "box": [
+            0.0,
+            10.0,
+            0.0,
+            10.0,
+            0.0,
+            10.0
+          ],
+          "imcon": 2,
+          "dump_frequency": 0.004,
+          "trajectory_duration_ps": 0.0,
+          "int_max": 0.016,
+          "skip_initial_atoms": 1,
+          "subtract_mean_velocity": true,
+          "spectrum_transform_time_ps": 0.016,
+          "tau": 0.0,
+          "smoothing_fwhm_cm1": 0.0
+        }
+      },
+      "reuse": {},
+      "cell": null,
+      "covers": [
+        "subtract_mean_velocity=true"
+      ]
+    },
+    {
+      "name": "power-fluoride-included-mean-true",
+      "input": "f-water.lammpstrj",
+      "frames": 4,
+      "extended": false,
+      "outputs": [
+        {
+          "file": "response.dat",
+          "columns": [
+            "time_ps",
+            "velocity_correlation"
+          ],
+          "rows": [
+            [
+              0.0,
+              0.373784
+            ],
+            [
+              0.004,
+              -0.332979
+            ],
+            [
+              0.008,
+              0.171175
+            ],
+            [
+              0.012,
+              -0.0909809
+            ]
+          ]
+        },
+        {
+          "file": "spectrum.dat",
+          "columns": [
+            "wavenumber_cm-1",
+            "normalized_intensity"
+          ],
+          "rows": [
+            [
+              0.0,
+              -21139700000.0
+            ],
+            [
+              1191.3,
+              7431430000.0
+            ],
+            [
+              2382.6,
+              16053100000.0
+            ],
+            [
+              3573.9,
+              196940000000.0
+            ]
+          ]
+        }
+      ],
+      "config": {
+        "POWER": {
+          "box": [
+            0.0,
+            10.0,
+            0.0,
+            10.0,
+            0.0,
+            10.0
+          ],
+          "imcon": 2,
+          "dump_frequency": 0.004,
+          "trajectory_duration_ps": 0.0,
+          "int_max": 0.016,
+          "skip_initial_atoms": 0,
+          "subtract_mean_velocity": true,
+          "spectrum_transform_time_ps": 0.016,
+          "tau": 0.0,
+          "smoothing_fwhm_cm1": 0.0
+        }
+      },
+      "reuse": {},
+      "cell": null,
+      "covers": [
+        "skip_initial_atoms=0",
+        "subtract_mean_velocity=true"
+      ]
+    }
+  ]
+}

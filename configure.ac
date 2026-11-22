@@ -139,6 +139,7 @@ AC_CONFIG_FILES([
   src/raman/Makefile
   src/sfg/Makefile
   src/power/Makefile
+  src/unittests/Makefile
 ])
 
 AC_OUTPUT

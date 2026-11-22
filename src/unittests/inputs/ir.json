@@ -1,0 +1,27 @@
+{
+  "INFRARED": {
+    "box": [
+      0.00033828338625596643,
+      19.655502780867728,
+      0.00033828338625596643,
+      19.655502780867728,
+      0.00033828338625596643,
+      19.655502780867728
+    ],
+    "imcon": 2,
+    "dump_frequency": 0.004,
+    "skip_initial_atoms": 0,
+    "trajectory_duration_ps": 0.0,
+    "int_max": 10.0,
+    "temperature": 300.0,
+    "spectrum_transform_time_ps": 10.0,
+    "tau": 0.0,
+    "smoothing_fwhm_cm1": 15.0,
+    "subtract_mean_dipole": false,
+    "write_molecular_properties": false,
+    "DMS": false,
+    "dipole_mb": "1b",
+    "cutoff_1": 5.5,
+    "cutoff_2": 7.5
+  }
+}

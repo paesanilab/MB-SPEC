@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
         for (size_t i = 0; i < zzz.wavenumber.size(); ++i) {
             const double wavenumber_cm1 = zzz.wavenumber[i] - redshift_cm1;
             if (wavenumber_cm1 == 0.0) {
-                throw std::runtime_error("redshift produces a zero infrared wavenumber");
+                continue;
             }
             const double infrared_wavelength_um = 1.0e4/wavenumber_cm1;
             const double infrared_frequency_ghz = wavenumber_cm1*cm1_to_ghz;

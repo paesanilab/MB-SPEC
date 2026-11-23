@@ -54,7 +54,7 @@ Needs `RAMAN` JSON and coordinates.
 Needs `SFG` JSON, coordinates, and dipoles.
 
 The fresnel factor calculation also requires the three SFG tensor component files (xxz.dat, zzz.dat, and xzx.dat) 
-and the refractive index files (in `src/sfg/fresnel_factors/`). 
+and the refractive index files in `src/sfg/fresnel_factors/`. 
 
 ## Power
 

@@ -1,4 +1,4 @@
-SUBDIRS = .
+include $(top_srcdir)/build-aux/common.am
 
 noinst_LIBRARIES = libtools.a
 
@@ -8,10 +8,6 @@ EXTRA_DIST = \
     macros.h \
     struct-lammpstrj-frame.h \
     struct-sfg-pols.h
-
-AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/tools \
-	   $(MKL_CFLAGS)
-AM_CXXFLAGS = $(CXX_FLAGS) -std=c++11
 
 libtools_a_SOURCES = constants.h \
     spectral_smoothing.h \
@@ -30,4 +26,4 @@ libtools_a_SOURCES = constants.h \
     poly-l-2b3.h poly-l-2b3.cpp \
     alpha-el-poly2b3.h alpha-el-poly2b3.cpp \
     alpha-ttm4.h alpha-ttm4.cpp \
-    system.h system.cpp 
+    system.h system.cpp

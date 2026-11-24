@@ -1,23 +1,15 @@
-AM_CXXFLAGS = $(CXX_FLAGS) -std=c++11
+include $(top_srcdir)/build-aux/common.am
 
-SUBDIRS = .
+LDADD = $(top_builddir)/src/tools/libtools.a $(MKL_LIBS)
 
-EXTRA_DIST = README.md 
-
-AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/tools $(MKL_CFLAGS)
+EXTRA_DIST = README.md
 
 bin_PROGRAMS = dipole \
 	       response \
                spectrum
 
-dipole_SOURCES = dipole.cpp 
-dipole_LDADD = ../tools/libtools.a $(MKL_LIBS)
-dipole_DEPS = ../tools/libtools.a
+dipole_SOURCES = dipole.cpp
 
-response_SOURCES = response.cpp 
-response_LDADD = ../tools/libtools.a $(MKL_LIBS)
-response_DEPS = ../tools/libtools.a
+response_SOURCES = response.cpp
 
-spectrum_SOURCES = spectrum.cpp 
-spectrum_LDADD = ../tools/libtools.a $(MKL_LIBS)
-spectrum_DEPS = ../tools/libtools.a
+spectrum_SOURCES = spectrum.cpp

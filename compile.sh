@@ -1,14 +1,13 @@
 #!/bin/sh
-set -e
+set -eu
 
+cd "$(dirname "$0")"
+
+# Rebuild when compilers or flags change.
 if [ -f Makefile ]; then
     make distclean
 fi
 
-autoreconf -fi
-
-./configure CC=icx CXX=icpx \
-    CFLAGS="-g -O0 -fopenmp -Wall -std=c99" \
-    CXXFLAGS="-g -O0 -fopenmp -Wall"
-
-make -j4
+./autogen.sh
+./configure CXX="${CXX:-icpx}" CXXFLAGS="${CXXFLAGS--O2}" "$@"
+make -j"${JOBS:-4}"

@@ -1,0 +1,25 @@
+# Autotools output and local builds.
+/autom4te.cache/
+/aclocal.m4
+/configure
+/configure~
+/config.h
+/config.h.in
+/config.h.in~
+/config.log
+/config.status
+/stamp-h1
+/build/
+/build-aux/compile
+/build-aux/depcomp
+/build-aux/install-sh
+/build-aux/missing
+/build-aux/test-driver
+Makefile
+Makefile.in
+.deps/
+.dirstamp
+*.o
+*.a
+/mb-spec-*.tar.*
+/mb-spec-*/

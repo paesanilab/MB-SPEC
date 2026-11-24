@@ -1,6 +1,6 @@
-SUBDIRS = .
+include $(top_srcdir)/build-aux/common.am
 
-AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/tools $(MKL_CFLAGS)
+LDADD = $(top_builddir)/src/tools/libtools.a $(MKL_LIBS)
 
 bin_PROGRAMS = response \
 	       spectrum \
@@ -12,12 +12,9 @@ EXTRA_DIST = \
     fresnel_factors/refractive_index_water_k.txt \
     fresnel_factors/refractive_index_water_n.txt
 
-response_SOURCES = response.cpp 
-response_LDADD = ../tools/libtools.a $(MKL_LIBS)
-response_DEPS = ../tools/libtools.a
+response_SOURCES = response.cpp
 
-spectrum_SOURCES = spectrum.cpp 
-spectrum_LDADD = ../tools/libtools.a $(MKL_LIBS)
-spectrum_DEPS = ../tools/libtools.a
+spectrum_SOURCES = spectrum.cpp
 
 fresnel_SOURCES = fresnel.cpp
+fresnel_LDADD =

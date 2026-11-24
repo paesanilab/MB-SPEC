@@ -1,0 +1,3 @@
+# Shared flags for the C++ library and spectroscopy programs.
+AM_CPPFLAGS = -I$(top_srcdir)/src/tools
+AM_CXXFLAGS = $(OPENMP_CXXFLAGS) $(MKL_CFLAGS)

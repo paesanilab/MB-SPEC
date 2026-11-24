@@ -1,4 +1,9 @@
-# Shared settings for the spectroscopy programs, which link against libtools.
+# Shared settings for the spectroscopy programs, which link against libtools
+# and the generated polynomial library (libpoly.a must follow libtools.a).
+# Programs that use OpenMP add $(OPENMP_CXXFLAGS) to their own _CXXFLAGS, and
+# programs that call LAPACKE add $(LAPACKE_LIBS) to their own _LDADD, so the
+# other programs do not depend on the OpenMP runtime or LAPACKE.
 include $(top_srcdir)/build-aux/common.am
 
-LDADD = $(top_builddir)/src/tools/libtools.a $(LAPACKE_LIBS)
+AM_CXXFLAGS = $(MBSPEC_CXXFLAGS)
+LDADD = $(top_builddir)/src/tools/libtools.a $(top_builddir)/src/tools/libpoly.a

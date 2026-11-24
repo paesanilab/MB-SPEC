@@ -9,9 +9,9 @@ The infrared workflow calculates the total dipole time correlation and its absor
 Run the three stages in order:
 
 ```bash
-OMP_NUM_THREADS=4 ./dipole trajectory.lammpstrj mb-spec.json > dipole.dat
-./response dipole.dat mb-spec.json > response.dat
-./spectrum response.dat mb-spec.json > spectrum.dat
+OMP_NUM_THREADS=4 mbspec-ir-dipole trajectory.lammpstrj mb-spec.json > dipole.dat
+mbspec-ir-response dipole.dat mb-spec.json > response.dat
+mbspec-ir-spectrum response.dat mb-spec.json > spectrum.dat
 ```
 
 ## Units

@@ -6,14 +6,14 @@ It requires a water slab trajectory with the permanent and induced dipole column
 Run:
 
 ```bash
-OMP_NUM_THREADS=4 ./response trajectory.lammpstrj sfg.json > response.dat
-./spectrum response.dat sfg.json > spectrum.dat
+OMP_NUM_THREADS=4 mbspec-sfg-response trajectory.lammpstrj sfg.json > response.dat
+mbspec-sfg-spectrum response.dat sfg.json > spectrum.dat
 ```
 
 Optionally apply Fresnel factors after calculating the component spectra:
 
 ```bash
-./fresnel fresnel.json
+mbspec-sfg-fresnel fresnel.json
 ```
 
 

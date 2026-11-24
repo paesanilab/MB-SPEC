@@ -20,6 +20,12 @@ ROOT = Path(__file__).resolve().parent
 SECTIONS = {"ir": "INFRARED", "raman": "RAMAN", "sfg": "SFG", "power": "POWER"}
 
 
+def program_path(binary_root, executable):
+    directory, stage = executable.split("/")
+    workflow = "ir" if directory == "infrared" else directory
+    return binary_root / directory / f"mbspec-{workflow}-{stage}"
+
+
 def first_frames(path, count=2):
     """Preserve atom records and metadata; select frames only, never molecules."""
     lines = path.read_text().splitlines(keepends=True)
@@ -154,7 +160,7 @@ def main():
             stage_name = executable.split("/")[-1]
             output_name = stage_name + ".dat"
             output = directory / output_name
-            binary = binary_root / executable
+            binary = program_path(binary_root, executable)
             signature = dict(program=executable, binary=hashlib.sha256(binary.read_bytes()).hexdigest(),
                              input=hashlib.sha256(current.read_bytes()).hexdigest(),
                              options=stage_options(suite,stage_name,options))
@@ -203,7 +209,7 @@ def main():
                 raise RuntimeError(f"Missing molecular output: {path}")
             molecular = (sidecar,path.read_text())
             # The property stage's persistent entry is distinct when output is enabled.
-            property_binary = binary_root / programs[0][0]
+            property_binary = program_path(binary_root, programs[0][0])
             signature = dict(program=programs[0][0],binary=hashlib.sha256(property_binary.read_bytes()).hexdigest(),
                              input=hashlib.sha256(trajectory.read_bytes()).hexdigest(),
                              options=stage_options(suite,programs[0][0].split("/")[-1],options))
@@ -264,7 +270,7 @@ def main():
             case = next(entry for entry in catalog["sfg"] if entry["name"] == label)
             rows = next(output["rows"] for output in case["outputs"]
                         if output["file"] == "spectrum.dat")
-            # Fresnel rejects zero infrared wavenumber; retain every positive sample.
+            # Keep the same positive wavenumbers as the saved reference.
             path = directory / (component + ".dat")
             path.write_text("".join(" ".join(format(value, ".17g") for value in row) + "\n"
                                     for row in rows if row[0] > 0))
@@ -275,7 +281,7 @@ def main():
         config_path = directory / "fresnel.json"
         config_path.write_text(json.dumps(settings, indent=2) + "\n")
         with (directory / "fresnel.log").open("w") as stderr:
-            subprocess.run([str(binary_root / "sfg" / "fresnel"), str(config_path)],
+            subprocess.run([str(program_path(binary_root, "sfg/fresnel")), str(config_path)],
                            cwd=directory, env=environment, stderr=stderr, check=True, timeout=180)
         outputs = []
         for polarization in ("ssp", "pss", "sps", "ppp"):

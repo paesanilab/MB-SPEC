@@ -7,11 +7,12 @@ For water, MB-SPEC includes built-in many-body dipole moment (MB-$`\mu`$) and po
 
 MB-SPEC requires a C++17 or newer compiler with OpenMP support and a LAPACKE
 implementation with LP64 (32-bit integer) headers and libraries. Generic
-LAPACKE is the default; Intel MKL is optional. A C compiler is also used by
-Automake's archiver detection. GSL is not required. Bootstrapping from a Git
-checkout requires Autoconf 2.70+ and Automake 1.16+. The GNU Autoconf Archive
-C++ standard check is included in `m4/`; no separate Archive installation is
-needed. Its upstream revision is recorded in `m4/README.md`. Release tarballs
+LAPACKE is the default; Intel MKL is optional. No C compiler, GSL or other
+libraries are required. Only `mbspec-ir-dipole` links LAPACKE. Bootstrapping from a Git
+checkout requires Autoconf 2.70+ and Automake 1.16+. The Autoconf macros it
+uses (from the GNU Autoconf Archive and pkgconf) are included in `m4/`, so no
+separate Autoconf Archive or pkg-config macro installation is
+needed. The vendored macros' upstream revisions are recorded in `m4/README.md`. Release tarballs
 include the generated `configure` script.
 
 For a generic LAPACKE installation on the compiler's normal search paths:
@@ -23,8 +24,9 @@ make -j4
 make check
 ```
 
-The default `--with-lapack=generic` uses `<lapacke.h>` and tries `-llapacke`,
-then `-llapacke -llapack -lblas`. Supply `LAPACKE_CFLAGS` and `LAPACKE_LIBS`
+The default `--with-lapack=generic` uses `<lapacke.h>`. It first tries the
+flags from the `lapacke` pkg-config module, when pkg-config is installed (it is
+optional), then `-llapacke`, then `-llapacke -llapack -lblas`. Supply `LAPACKE_CFLAGS` and `LAPACKE_LIBS`
 for a custom installation or library combination, for example:
 
 ```bash
@@ -48,9 +50,15 @@ make -j4
 make check
 ```
 
-Without `LAPACKE_LIBS`, an MKL build first tries the compiler's own MKL
-support (for example `CXXFLAGS="-O2 -qmkl=sequential"` with `icpx`), then
-`-I${MKLROOT}/include` with the sequential LP64 libraries under `MKLROOT`.
+Without `LAPACKE_LIBS`, an MKL build tries, in order:
+
+1. the compiler's own MKL support (for example `CXXFLAGS="-O2 -qmkl=sequential"`
+   with `icpx`)
+2. oneAPI's `mkl-dynamic-lp64-seq` pkg-config module
+3. `-I${MKLROOT}/include` with the sequential LP64 libraries under `MKLROOT`
+
+The MKL libraries must be on the runtime library path (initializing the MKL
+environment sets `LD_LIBRARY_PATH`).
 For other threading layers or layouts, pass the flags explicitly:
 
 ```bash
@@ -62,8 +70,8 @@ For other threading layers or layouts, pass the flags explicitly:
 For either implementation, the headers and libraries must agree on
 the LP64 integer interface; ILP64 is unsupported. Configuration checks the
 header and compilation/linkage of all three required LAPACKE routines. It
-does not run numerical tests; `make check` tests inversion, singular-matrix
-failure, and symmetric eigenvalues against the selected implementation.
+does not run numerical tests. `make check` tests inversion, singular-matrix
+failure and symmetric eigenvalues against the selected implementation.
 
 Configuration enables C++17 using compiler-specific flags and rejects modes
 older than C++17. To select a newer mode, put its flag in `CXXFLAGS`, for example
@@ -72,7 +80,19 @@ detected automatically; disabling OpenMP is unsupported because the programs
 call its runtime directly.
 
 With GCC-compatible compilers (GCC, Clang, `icpx`), `-Wall` is added
-automatically.
+automatically. Two options are meant for development:
+
+- `--enable-werror` treats compiler warnings as errors.
+- `--enable-sanitizers` builds with AddressSanitizer and
+  UndefinedBehaviorSanitizer (`-fsanitize=address,undefined`). Any finding
+  aborts the program, so `make check` fails. The generated polynomial library
+  is not instrumented (see `src/tools/README.md`).
+
+`make check` runs unit tests of the matrix routines and the 2B polynomial,
+and end-to-end tests of every workflow. The workflow tests compare each
+stage's output with reference outputs from the `master` branch; see
+`tests/README.md`. The regression suites in `src/unittests/` also check numerical
+references, analytical cases, and agreement across input formats and thread counts.
 
 The old `MKL_CFLAGS` and `MKL_LIBS` variables are ignored with a warning. Rename them to
 `LAPACKE_CFLAGS` and `LAPACKE_LIBS` and add `--with-lapack=mkl` to retain an
@@ -83,11 +103,27 @@ Use `make -jN` to select the number of parallel build jobs. Run `make clean`
 before changing compilers or compilation flags, then rerun `./configure`
 with the new settings and rebuild. Run
 `./autogen.sh` again after editing `configure.ac`, `Makefile.am`, or files in
-`m4/`. Executables are created in `src/infrared`, `src/raman`, `src/sfg`, and
-`src/power`. `make install` does not install them, because several workflows
-share program names (`response`, `spectrum`).
+`m4/`.
 
-Run the executables from the corresponding workflow directory, as shown below.
+`make install` installs the programs to `$prefix/bin` (default `/usr/local`;
+choose another with `./configure --prefix=DIR`). Each is named
+`mbspec-<workflow>-<stage>`:
+
+| Workflow | Programs |
+|----------|----------|
+| IR | `mbspec-ir-dipole`, `mbspec-ir-response`, `mbspec-ir-spectrum` |
+| Raman | `mbspec-raman-polarizability`, `mbspec-raman-response`, `mbspec-raman-spectrum` |
+| SFG | `mbspec-sfg-response`, `mbspec-sfg-spectrum`, `mbspec-sfg-fresnel` |
+| Power | `mbspec-power-response`, `mbspec-power-spectrum` |
+
+Without installing, the programs are in `src/infrared`, `src/raman`, `src/sfg`
+and `src/power` of the build tree. The JSON templates are installed to
+`$prefix/share/mb-spec/json_template/`. The example Fresnel configuration and
+the water refractive-index tables are installed to `$prefix/share/mb-spec/sfg/`.
+`fresnel.json` refers to the tables by relative path, so copy
+`fresnel.json` and `fresnel_factors/` into your working directory.
+
+The workflow commands below assume the programs are on your `PATH`.
 
 ## Workflows
 
@@ -98,9 +134,9 @@ All variables for `INFRARED`, `RAMAN`, `SFG`, and `POWER` are specified in the J
 ## IR
 
 ```bash
-./dipole trajectory.lammpstrj ir.json > dipole.dat
-./response dipole.dat ir.json > response.dat
-./spectrum response.dat ir.json > spectrum.dat
+mbspec-ir-dipole trajectory.lammpstrj ir.json > dipole.dat
+mbspec-ir-response dipole.dat ir.json > response.dat
+mbspec-ir-spectrum response.dat ir.json > spectrum.dat
 ```
 
 Needs `INFRARED` JSON and coordinates; external dipole mode also needs dipoles.
@@ -108,9 +144,9 @@ Needs `INFRARED` JSON and coordinates; external dipole mode also needs dipoles.
 ## Raman
 
 ```bash
-./polarizability trajectory.lammpstrj raman.json > polarizability.dat
-./response polarizability.dat raman.json > response.dat
-./spectrum response.dat raman.json > spectrum.dat
+mbspec-raman-polarizability trajectory.lammpstrj raman.json > polarizability.dat
+mbspec-raman-response polarizability.dat raman.json > response.dat
+mbspec-raman-spectrum response.dat raman.json > spectrum.dat
 ```
 
 Needs `RAMAN` JSON and coordinates.
@@ -118,9 +154,9 @@ Needs `RAMAN` JSON and coordinates.
 ## SFG
 
 ```bash
-./response trajectory.lammpstrj sfg.json > response.dat
-./spectrum response.dat sfg.json > spectrum.dat
-./fresnel fresnel.json
+mbspec-sfg-response trajectory.lammpstrj sfg.json > response.dat
+mbspec-sfg-spectrum response.dat sfg.json > spectrum.dat
+mbspec-sfg-fresnel fresnel.json
 ```
 
 Needs `SFG` JSON, coordinates, and dipoles.
@@ -131,8 +167,8 @@ and the refractive index files in `src/sfg/fresnel_factors/`.
 ## Power
 
 ```bash
-./response trajectory.lammpstrj power.json > response.dat
-./spectrum response.dat power.json > spectrum.dat
+mbspec-power-response trajectory.lammpstrj power.json > response.dat
+mbspec-power-spectrum response.dat power.json > spectrum.dat
 ```
 
 Needs `POWER` JSON and velocities. 

@@ -10,9 +10,9 @@ and their reduced Raman spectra. It consists of three executables:
 Run the stages in order:
 
 ```bash
-OMP_NUM_THREADS=4 ./polarizability trajectory.lammpstrj mb-spec.json > polarizability.dat
-./response polarizability.dat mb-spec.json > response.dat
-./spectrum response.dat mb-spec.json > spectrum.dat
+OMP_NUM_THREADS=4 mbspec-raman-polarizability trajectory.lammpstrj mb-spec.json > polarizability.dat
+mbspec-raman-response polarizability.dat mb-spec.json > response.dat
+mbspec-raman-spectrum response.dat mb-spec.json > spectrum.dat
 ```
 
 ## Units

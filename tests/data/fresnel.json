@@ -1,0 +1,19 @@
+{
+  "xxz_file": "spectrum-xxz.dat",
+  "zzz_file": "spectrum-zzz.dat",
+  "xzx_file": "spectrum-xzx.dat",
+
+  "visible_incidence_angle_deg": 67.0,
+  "infrared_incidence_angle_deg": 63.0,
+  "visible_wavelength_um": 0.8,
+  "nonresonant_background": 0.1,
+  "redshift_cm1": -10.0,
+
+  "water_refractive_index_n_file": "fresnel_factors/refractive_index_water_n.txt",
+  "water_refractive_index_k_file": "fresnel_factors/refractive_index_water_k.txt",
+
+  "ssp_output_file": "fresnel-ssp.dat",
+  "pss_output_file": "fresnel-pss.dat",
+  "sps_output_file": "fresnel-sps.dat",
+  "ppp_output_file": "fresnel-ppp.dat"
+}

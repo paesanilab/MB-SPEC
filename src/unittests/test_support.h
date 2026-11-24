@@ -306,7 +306,10 @@ struct Suite {
         auto config_path = directory / "config.json";
         write(config_path, raw_config.empty() ? config.dump(2) : raw_config);
         auto output = directory / "stdout.dat", log = directory / "stderr.log";
-        auto program = program_root / executable;
+        const fs::path stage = executable;
+        const auto workflow = stage.parent_path().string();
+        const auto program = program_root / workflow /
+            ("mbspec-" + (workflow == "infrared" ? "ir" : workflow) + "-" + stage.filename().string());
         require(fs::exists(program), "missing executable " + program.string());
         pid_t child = fork();
         require(child >= 0, "fork failed");

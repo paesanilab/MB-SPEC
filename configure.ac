@@ -8,15 +8,37 @@ AM_INIT_AUTOMAKE([foreign 1.16])
 AM_SILENT_RULES([yes])
 
 AC_PROG_CXX
-# AM_PROG_AR also requests a C compiler for its archive-interface probe.
-AM_PROG_AR
+# AM_PROG_AR is deliberately omitted: it only supports non-POSIX archivers
+# (Microsoft lib) and would require a C compiler for its probe.
 AC_PROG_RANLIB
 AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory])
 AC_LANG([C++])
 
 # Enable common warnings for GCC-compatible compilers (GCC, Clang, icpx).
+AC_ARG_ENABLE([werror],
+    [AS_HELP_STRING([--enable-werror],
+        [treat compiler warnings as errors @<:@default=no@:>@])],
+    [], [enable_werror=no])
 AS_IF([test "x$GXX" = xyes], [WARN_CXXFLAGS=-Wall], [WARN_CXXFLAGS=])
+AS_IF([test "x$enable_werror" = xyes],
+    [AS_IF([test "x$GXX" = xyes],
+        [WARN_CXXFLAGS="$WARN_CXXFLAGS -Werror"],
+        [AC_MSG_ERROR([--enable-werror requires a GCC-compatible C++ compiler.])])])
 AC_SUBST([WARN_CXXFLAGS])
+
+# Optional AddressSanitizer and UndefinedBehaviorSanitizer instrumentation.
+AC_ARG_ENABLE([sanitizers],
+    [AS_HELP_STRING([--enable-sanitizers],
+        [build with AddressSanitizer and UndefinedBehaviorSanitizer @<:@default=no@:>@])],
+    [], [enable_sanitizers=no])
+SANITIZE_CXXFLAGS=
+AS_IF([test "x$enable_sanitizers" = xyes],
+    # UBSan only reports and continues by default; make it abort so that a
+    # finding fails the tests.
+    [AX_CHECK_LINK_FLAG([-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer],
+        [SANITIZE_CXXFLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer"],
+        [AC_MSG_ERROR([--enable-sanitizers requires a compiler and linker supporting -fsanitize=address,undefined.])])])
+AC_SUBST([SANITIZE_CXXFLAGS])
 
 # OpenMP is required: the programs call its runtime functions directly.
 AC_OPENMP
@@ -39,20 +61,40 @@ AC_ARG_VAR([LAPACKE_LIBS], [LAPACKE linker flags and libraries for the selected 
 AS_IF([test "${MKL_CFLAGS+set}" = set || test "${MKL_LIBS+set}" = set],
     [AC_MSG_WARN([MKL_CFLAGS and MKL_LIBS are ignored. Use --with-lapack=mkl with LAPACKE_CFLAGS and LAPACKE_LIBS instead.])])
 
+# pkg-config is optional; without it the pkg-config candidate is skipped.
+# (pkg.m4's default action when pkg-config is missing is to abort.)
+PKG_PROG_PKG_CONFIG([], [PKG_CONFIG=])
+AS_IF([test "$with_lapack" = mkl],
+    [lapacke_pc_module=mkl-dynamic-lp64-seq],
+    [lapacke_pc_module=lapacke])
+
 saved_LIBS=$LIBS
 saved_CXXFLAGS=$CXXFLAGS
 # An explicitly supplied LAPACKE_LIBS value, even empty, never falls back.
-# Without one, MKL first tries the compiler's own MKL support (e.g. -qmkl),
-# then the sequential LP64 libraries under $MKLROOT when it is set.
+# Without one:
+#   generic: pkg-config 'lapacke', then -llapacke, then -llapacke -llapack -lblas
+#   mkl:     the compiler's own MKL support (e.g. -qmkl), then pkg-config
+#            'mkl-dynamic-lp64-seq', then the sequential LP64 libraries under
+#            $MKLROOT when it is set.
 AS_IF([test "${LAPACKE_LIBS+set}" = set], [lapacke_candidates=user],
-    [test "$with_lapack" = mkl && test -n "$MKLROOT"], [lapacke_candidates="user mklroot"],
-    [test "$with_lapack" = mkl], [lapacke_candidates=user],
-    [lapacke_candidates="lapacke lapacke_with_blas"])
+    [test "$with_lapack" = mkl && test -n "$MKLROOT"], [lapacke_candidates="user pkgconfig mklroot"],
+    [test "$with_lapack" = mkl], [lapacke_candidates="user pkgconfig"],
+    [lapacke_candidates="pkgconfig lapacke lapacke_with_blas"])
 lapacke_found=no
 for lapacke_candidate in $lapacke_candidates; do
     lapacke_try_CFLAGS=$LAPACKE_CFLAGS
+    AS_IF([test "$lapacke_candidate" = pkgconfig],
+        [AC_MSG_CHECKING([for pkg-config module $lapacke_pc_module])
+         AS_IF([test -n "$PKG_CONFIG" && $PKG_CONFIG --exists "$lapacke_pc_module"],
+             [AC_MSG_RESULT([yes])],
+             [AC_MSG_RESULT([no])
+              continue])])
     AS_CASE([$lapacke_candidate],
         [user], [lapacke_try_LIBS=$LAPACKE_LIBS],
+        [pkgconfig],
+        [AS_IF([test "${LAPACKE_CFLAGS+set}" != set],
+             [lapacke_try_CFLAGS=`$PKG_CONFIG --cflags "$lapacke_pc_module"`])
+         lapacke_try_LIBS=`$PKG_CONFIG --libs "$lapacke_pc_module"`],
         [mklroot],
         [AS_IF([test "${LAPACKE_CFLAGS+set}" != set],
              [lapacke_try_CFLAGS="-I${MKLROOT}/include"])
@@ -106,6 +148,7 @@ AC_CONFIG_FILES([
   src/sfg/Makefile
   src/power/Makefile
   src/unittests/Makefile
+  tests/Makefile
 ])
 AC_OUTPUT
 
@@ -117,6 +160,7 @@ AC_MSG_NOTICE([Configuration summary:
       LIBS = $LIBS
     OpenMP = $OPENMP_CXXFLAGS
   Warnings = $WARN_CXXFLAGS
+Sanitizers = $SANITIZE_CXXFLAGS
     LAPACK = $with_lapack
 LAPACKE_CFLAGS = $LAPACKE_CFLAGS
 LAPACKE_LIBS = $LAPACKE_LIBS

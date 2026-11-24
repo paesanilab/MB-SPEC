@@ -1,16 +1,15 @@
-AM_CPPFLAGS = -I$(top_srcdir)/src/tools $(MKL_CFLAGS) \
-              -DUNITTEST_DIR='"$(abs_srcdir)"' \
-              -DUNITTEST_BUILDDIR='"$(abs_builddir)"' \
-              -DUNITTEST_BINDIR='"$(abs_top_builddir)/src"'
+include $(top_srcdir)/build-aux/programs.am
 
-AM_CXXFLAGS = -std=c++17 -fopenmp
-LDADD = $(top_builddir)/src/tools/libtools.a $(MKL_LIBS) $(GSL_LIBS)
+AM_CPPFLAGS += -DUNITTEST_DIR='"$(abs_srcdir)"' \
+               -DUNITTEST_BUILDDIR='"$(abs_builddir)"' \
+               -DUNITTEST_BINDIR='"$(abs_top_builddir)/src"'
 
 check_PROGRAMS = unittest-ir unittest-raman unittest-power unittest-sfg
 TESTS = $(check_PROGRAMS)
 AM_TESTS_ENVIRONMENT = MB_SPEC_EXTENDED=1; export MB_SPEC_EXTENDED;
 
 unittest_ir_SOURCES = unittest-ir.cpp
+unittest_ir_LDADD = $(LDADD) $(LAPACKE_LIBS)
 unittest_raman_SOURCES = unittest-raman.cpp
 unittest_power_SOURCES = unittest-power.cpp
 unittest_sfg_SOURCES = unittest-sfg.cpp

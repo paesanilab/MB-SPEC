@@ -57,8 +57,10 @@ double muOH(const double& r)
      const size_t n_coeffs(8);
 
      double powers_a[n_coeffs];
-     powers_a[0] = a;
 
+     // Exponents a^1 ... a^8. The loop starts at 1: starting at 0 read
+     // powers_a[-1] (out of bounds, found by AddressSanitizer).
+     powers_a[0] = a;
      for(size_t i = 1; i < n_coeffs; ++i)
 	 powers_a[i] = powers_a[i-1]*a;
     

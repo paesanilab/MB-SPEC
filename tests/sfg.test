@@ -1,0 +1,21 @@
+#!/bin/sh
+# SFG workflow: zzz, xxz and xzx responses (auto + cross correlation) ->
+# spectra -> Fresnel-corrected ssp/pss/sps/ppp intensities.
+. "${srcdir:-$(dirname "$0")}/common.sh"
+
+for ijk in zzz xxz xzx; do
+    sed "s/\"ijk\": \"zzz\"/\"ijk\": \"$ijk\"/" "$data/sfg.json" > "sfg-$ijk.json"
+    run "response-$ijk.dat" "$(prog sfg response)" "$data/water4-sfg.lammpstrj" "sfg-$ijk.json"
+    run "spectrum-$ijk.dat" "$(prog sfg spectrum)" "response-$ijk.dat" "sfg-$ijk.json"
+done
+
+cp "$data/fresnel.json" .
+mkdir fresnel_factors
+cp "$srcdir/../src/sfg/fresnel_factors/refractive_index_water_n.txt" \
+   "$srcdir/../src/sfg/fresnel_factors/refractive_index_water_k.txt" fresnel_factors/
+run fresnel.out "$(prog sfg fresnel)" fresnel.json
+
+check response-zzz.dat response-xxz.dat response-xzx.dat \
+      spectrum-zzz.dat spectrum-xxz.dat spectrum-xzx.dat \
+      fresnel-ssp.dat fresnel-pss.dat fresnel-sps.dat fresnel-ppp.dat
+finish

@@ -5,8 +5,8 @@ it into a normalized spectrum. This collective observable includes cross terms
 between atoms; it differs from a sum of per-atom velocity autocorrelations.
 
 ```bash
-./response trajectory.lammpstrj mb-spec.json > response.dat
-./spectrum response.dat mb-spec.json > spectrum.dat
+mbspec-power-response trajectory.lammpstrj mb-spec.json > response.dat
+mbspec-power-spectrum response.dat mb-spec.json > spectrum.dat
 ```
 
 ## Units

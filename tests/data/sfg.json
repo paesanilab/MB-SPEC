@@ -1,0 +1,27 @@
+{
+  "SFG": {
+    "imcon": 2,
+    "dump_frequency": 0.25,
+    "skip_initial_atoms": 0,
+    "trajectory_duration_ps": 0.0,
+    "zc1": 2.0,
+    "zc2": 4.0,
+    "ijk": "zzz",
+    "dipole_mb": "1b+2b",
+    "polarizability_mb": "1b+2b",
+    "cutoff_1": 5.5,
+    "cutoff_2": 7.5,
+    "surface": "both",
+    "include_autocorrelation": true,
+    "include_cross_correlation": true,
+    "cross_correlation_cutoff": 4.0,
+    "cross_correlation_sampling_stride": 1,
+    "int_max": 1.6,
+    "temperature": 300.0,
+    "tau": 0.0,
+    "subtract_initial_response": false,
+    "spectrum_transform_time_ps": 1.5,
+    "spectrum_max_wavenumber_cm1": 4000.0,
+    "spectrum_num_wavenumbers": 9
+  }
+}

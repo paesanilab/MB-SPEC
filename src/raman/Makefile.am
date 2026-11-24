@@ -1,13 +1,10 @@
 include $(top_srcdir)/build-aux/programs.am
 
-noinst_PROGRAMS = polarizability \
-	       response \
-	       spectrum
-
 EXTRA_DIST = README.md
 
-polarizability_SOURCES = polarizability.cpp
+bin_PROGRAMS = mbspec-raman-polarizability mbspec-raman-response mbspec-raman-spectrum
 
-response_SOURCES = response.cpp
-
-spectrum_SOURCES = spectrum.cpp
+mbspec_raman_polarizability_SOURCES = polarizability.cpp
+mbspec_raman_polarizability_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
+mbspec_raman_response_SOURCES = response.cpp
+mbspec_raman_spectrum_SOURCES = spectrum.cpp

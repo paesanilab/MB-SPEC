@@ -1,0 +1,9 @@
+#!/bin/sh
+# Infrared workflow: MB-mu dipoles (1B + 2B) -> dipole autocorrelation -> spectrum.
+. "${srcdir:-$(dirname "$0")}/common.sh"
+
+run dipole.dat   "$(prog ir dipole)"   "$data/water4.xyz" "$data/ir.json"
+run response.dat "$(prog ir response)" dipole.dat         "$data/ir.json"
+run spectrum.dat "$(prog ir spectrum)" response.dat       "$data/ir.json"
+check dipole.dat response.dat spectrum.dat
+finish

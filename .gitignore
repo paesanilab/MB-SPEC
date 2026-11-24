@@ -21,12 +21,35 @@ Makefile.in
 .deps/
 .dirstamp
 *.o
+*.o.tmp
 *.a
 /mb-spec-*.tar.*
 /mb-spec-*/
 
+# Programs.
+/src/*/mbspec-*
+
+# Programs under their pre-rename names, as built by master and older
+# checkouts (previously ignored by per-directory .gitignore files).
+/src/infrared/dipole
+/src/infrared/dipole_omp
+/src/infrared/response
+/src/infrared/spectrum
+/src/raman/polarizability
+/src/raman/response
+/src/raman/spectrum
+/src/sfg/fresnel
+/src/sfg/response
+/src/sfg/spectrum
+/src/power/response
+/src/power/spectrum
+
+# Program outputs written to the working directory.
+molecular_dipoles.dat
+molecular_polarizabilities.dat
+
 # Automake test executables and reports.
 /src/tools/test-mat-tools
 /src/tools/test-poly2b5
-/src/tools/test-*.log
-/src/tools/test-*.trs
+*.log
+*.trs

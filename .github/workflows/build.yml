@@ -1,0 +1,134 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.cxx }} / generic LAPACKE
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cxx: g++
+            packages: ""
+          - cxx: clang++
+            packages: clang libomp-dev
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake make pkgconf liblapacke-dev ${{ matrix.packages }}
+      - name: Bootstrap
+        run: ./autogen.sh
+      - name: Configure
+        run: ./configure CXX=${{ matrix.cxx }} --enable-werror
+      - name: Build
+        run: make -j"$(nproc)"
+      - name: Test
+        run: make -j"$(nproc)" check
+      - name: Distribution check
+        run: make -j"$(nproc)" distcheck DISTCHECK_CONFIGURE_FLAGS="CXX=${{ matrix.cxx }}"
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.cxx }}
+          path: |
+            config.log
+            src/tools/*.log
+            tests/*.log
+
+  sanitizers:
+    name: g++ / ASan + UBSan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake make pkgconf liblapacke-dev
+      - name: Bootstrap
+        run: ./autogen.sh
+      - name: Configure
+        run: ./configure --enable-werror --enable-sanitizers
+      - name: Build
+        run: make -j"$(nproc)"
+      - name: Test
+        env:
+          UBSAN_OPTIONS: print_stacktrace=1
+        run: make -j"$(nproc)" check
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-sanitizers
+          path: |
+            config.log
+            src/tools/*.log
+            tests/*.log
+
+  mkl:
+    name: g++ / Intel MKL
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sh .github/install-mkl.sh autoconf automake make pkgconf
+      - name: Bootstrap
+        run: ./autogen.sh
+      - name: Configure (MKL found automatically)
+        run: |
+          set +u; . /opt/intel/oneapi/setvars.sh; set -u
+          ./configure --with-lapack=mkl --enable-werror
+      - name: Build and test
+        run: |
+          set +u; . /opt/intel/oneapi/setvars.sh; set -u
+          make -j"$(nproc)"
+          make -j"$(nproc)" check
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-mkl
+          path: |
+            config.log
+            src/tools/*.log
+            tests/*.log
+
+  reference-check:
+    # Regenerate the workflow-test references from an unmodified build of the
+    # pre-modernization master commit recorded in tests/reference/PROVENANCE,
+    # and compare them with the committed tests/reference/. This proves that
+    # the committed references really come from that master. The commit is
+    # pinned because the master branch itself moves once this build lands.
+    name: references match master
+    runs-on: ubuntu-latest
+    env:
+      MASTER_COMMIT: c516736c3946166e0ee81b2198854a67da660c99
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.MASTER_COMMIT }}
+          path: master
+      - name: Install dependencies
+        run: sh .github/install-mkl.sh autoconf automake make clang libomp-dev libgsl-dev
+      - name: Build master and regenerate references
+        run: |
+          set +u; . /opt/intel/oneapi/setvars.sh; set -u
+          sh tests/generate-reference.sh master "$RUNNER_TEMP/reference"
+      - name: Compare with committed references
+        run: |
+          status=0
+          for ref in tests/reference/*/*.dat; do
+              new="$RUNNER_TEMP/reference/${ref#tests/reference/}"
+              sh tests/compare.sh "$ref" "$new" || status=1
+          done
+          exit $status

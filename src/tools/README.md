@@ -18,7 +18,7 @@ In the tables below, `.cpp/.h` denotes an implementation and its public interfac
 | `struct-lammpstrj-frame.h` | Frame storage for coordinates, atom information, dipoles, cell matrices, and times, including allocation and copying. |
 | `struct-sfg-pols.h` | Molecular property components, interface weights, and correlation partner lists used by SFG. |
 | `io-tools.cpp/.h` | Input-error reporting, inverse-cell construction, and atom-label utilities. |
-| `json/json.h` | Bundled nlohmann JSON library, version 3.7.0; its MIT license notice is included in the header. |
+| `json/json.h` | Bundled nlohmann JSON library, version 3.11.3: the unmodified single-header `json.hpp` from the [v3.11.3 release](https://github.com/nlohmann/json/releases/tag/v3.11.3) (SHA-256 `9bea4c8066ef4a1c206b2be5a36302f8926f7fdc6087af5d20b417d0cf103ea6`). Its MIT license notice is in the header. |
 
 ### Geometry and numerical utilities
 
@@ -133,12 +133,18 @@ enabled.
 
 ## Build and generated files
 
-`Makefile.am` defines `libtools.a`, its sources, and additional distribution
-files. The library is built as part of the repository build. Matrix utilities
+`Makefile.am` defines two internal libraries and the distribution files.
+`libpoly.a` holds the generated polynomial evaluators (`poly2b5*.cpp` and
+`poly-l-2b3.cpp`); everything else is in `libtools.a`. Programs link
+`libtools.a` before `libpoly.a`. `libpoly.a` is compiled without
+`--enable-sanitizers` instrumentation: its straight-line arithmetic takes tens
+of minutes to compile when instrumented, and the polynomial regression and
+workflow tests check its results. Matrix utilities
 require LP64 LAPACKE with 32-bit integers. The default `--with-lapack=generic`
-uses `lapacke.h` and tries `-llapacke`, then `-llapacke -llapack -lblas`.
-`--with-lapack=mkl` selects `mkl_lapacke.h` and uses supplied flags, the
-compiler environment, or, failing those, the sequential LP64 libraries under
+uses `lapacke.h` and tries the `lapacke` pkg-config module, then `-llapacke`,
+then `-llapacke -llapack -lblas`. `--with-lapack=mkl` selects `mkl_lapacke.h`
+and uses supplied flags, the compiler environment, the `mkl-dynamic-lp64-seq`
+pkg-config module, or, failing those, the sequential LP64 libraries under
 `MKLROOT`. Configuration checks compilation and linkage of `LAPACKE_dgetrf`,
 `LAPACKE_dgetri`, and `LAPACKE_dsyev` and stops if they are unavailable.
 
@@ -150,12 +156,13 @@ unsupported. The old `MKL_CFLAGS` and `MKL_LIBS` variables are ignored with a
 warning: rename them to the LAPACKE variables and select `--with-lapack=mkl` for MKL.
 The legacy `--enable-mkl`, `--disable-mkl`, and `--with-mkl-*` options remain
 removed. See the root README for generic, custom-library, and MKL examples.
-Build configuration supplies the selected LAPACKE flags to the spectroscopy
-programs using this library. `make check` runs numerical matrix tests against
+Build configuration links the selected LAPACKE libraries only into
+`mbspec-ir-dipole`, the one program that calls them (through `ltp2011`), and
+the matrix test. `make check` runs numerical matrix tests against
 the selected implementation; the test executable is not installed.
 
-`Makefile.in`, `Makefile`, `.deps/`, `*.o`, and `libtools.a` are generated build
-files.
+`Makefile.in`, `Makefile`, `.deps/`, `*.o`, `libtools.a` and `libpoly.a` are
+generated build files.
 
 The `poly2b5.cpp` wrapper evaluates the six output blocks in their original
 order. Their explicit polynomial assignments are kept in

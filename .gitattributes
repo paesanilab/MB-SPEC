@@ -1,0 +1,8 @@
+# The trajectory readers require LF line endings, and the test scripts are
+# run by /bin/sh; keep them LF on every checkout.
+tests/** text eol=lf
+*.sh text eol=lf
+*.test text eol=lf
+*.m4 text eol=lf
+*.am text eol=lf
+configure.ac text eol=lf

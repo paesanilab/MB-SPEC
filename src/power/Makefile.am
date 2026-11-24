@@ -2,9 +2,8 @@ include $(top_srcdir)/build-aux/programs.am
 
 EXTRA_DIST = README.md
 
-noinst_PROGRAMS = response \
-               spectrum
+bin_PROGRAMS = mbspec-power-response mbspec-power-spectrum
 
-response_SOURCES = response.cpp
-
-spectrum_SOURCES = spectrum.cpp
+mbspec_power_response_SOURCES = response.cpp
+mbspec_power_response_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
+mbspec_power_spectrum_SOURCES = spectrum.cpp

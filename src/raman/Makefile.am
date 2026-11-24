@@ -2,7 +2,7 @@ include $(top_srcdir)/build-aux/common.am
 
 LDADD = $(top_builddir)/src/tools/libtools.a $(MKL_LIBS)
 
-bin_PROGRAMS = polarizability \
+noinst_PROGRAMS = polarizability \
 	       response \
 	       spectrum
 

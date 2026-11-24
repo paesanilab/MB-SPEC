@@ -42,6 +42,8 @@ with the new settings and rebuild. Run
 `m4/`. Executables are created in `src/infrared`, `src/raman`, `src/sfg`, and
 `src/power`.
 
+Run the executables from the corresponding workflow directory, as shown below.
+
 ## Workflows
 
 Use `OMP_NUM_THREADS` to set parallelism for stages that support OpenMP. 

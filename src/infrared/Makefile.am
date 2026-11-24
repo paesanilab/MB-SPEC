@@ -4,7 +4,7 @@ LDADD = $(top_builddir)/src/tools/libtools.a $(MKL_LIBS)
 
 EXTRA_DIST = README.md
 
-bin_PROGRAMS = dipole \
+noinst_PROGRAMS = dipole \
 	       response \
                spectrum
 

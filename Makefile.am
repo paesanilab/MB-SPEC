@@ -1,6 +1,6 @@
 SUBDIRS = src
 
-dist_noinst_SCRIPTS = autogen.sh compile.sh
+dist_noinst_SCRIPTS = autogen.sh
 
 EXTRA_DIST = \
     README.md \

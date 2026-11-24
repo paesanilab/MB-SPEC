@@ -1,5 +1,5 @@
 #!/bin/sh
 set -eu
 
-cd "$(dirname "$0")"
+CDPATH= cd "$(dirname "$0")"
 exec autoreconf --force --install "$@"

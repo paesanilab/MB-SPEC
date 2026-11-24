@@ -35,8 +35,12 @@ call its runtime directly.
 The legacy `--enable-mkl`, `--disable-mkl`, and `--with-mkl-*` options have been
 removed. MKL remains required; use `MKL_CFLAGS` and `MKL_LIBS` to configure it.
 
-`compile.sh` is a convenience script using `icpx` by default. Executables are
-created in `src/infrared`, `src/raman`, `src/sfg`, and `src/power`.
+Use `make -jN` to select the number of parallel build jobs. Run `make clean`
+before changing compilers or compilation flags, then rerun `./configure`
+with the new settings and rebuild. Run
+`./autogen.sh` again after editing `configure.ac`, `Makefile.am`, or files in
+`m4/`. Executables are created in `src/infrared`, `src/raman`, `src/sfg`, and
+`src/power`.
 
 ## Workflows
 

@@ -5,16 +5,37 @@ For water, MB-SPEC includes built-in many-body dipole moment (MB-$`\mu`$) and po
 
 ## Build
 
-MB-SPEC requires Autotools, a C++ compiler with OpenMP support, GSL, and Intel
-MKL with its LAPACKE headers and libraries. From the repository root:
+MB-SPEC requires a C++17 or newer compiler with OpenMP support and Intel MKL
+with its LAPACKE headers and LP64 libraries. A C compiler is also used by
+Automake's archiver detection. GSL is not required. Bootstrapping from a Git
+checkout requires Autoconf 2.70+ and Automake 1.16+. The GNU Autoconf Archive
+C++ standard check is included in `m4/`; no separate Archive installation is
+needed. Its upstream revision is recorded in `m4/README.md`. Release tarballs
+include the generated `configure` script.
+
+Supply `MKL_CFLAGS` and `MKL_LIBS` for your installation and threading layer.
+Configuration does not assume installation paths, architecture flags, or an
+OpenMP runtime. After initializing your MKL environment, a Linux build using
+the sequential LP64 libraries can be configured from the repository root as:
 
 ```bash
-autoreconf -fi
-./configure CXX=c++ CC=cc CXXFLAGS="-O2 -fopenmp" CFLAGS="-O2 -fopenmp"
+./autogen.sh                 # Git checkouts only
+./configure CXX=c++ CXXFLAGS="-O2" \
+    MKL_CFLAGS="-I${MKLROOT}/include" \
+    MKL_LIBS="-L${MKLROOT}/lib -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl"
 make -j4
 ```
 
-`compile.sh` is a convenience script for Intel compilers. Executables are
+Configuration enables C++17 using compiler-specific flags and rejects modes
+older than C++17. To select a newer mode, put its flag in `CXXFLAGS`, for example
+`CXXFLAGS="-O2 -std=c++20"`. User `CXXFLAGS` are preserved. OpenMP flags are
+detected automatically; disabling OpenMP is unsupported because the programs
+call its runtime directly.
+
+The legacy `--enable-mkl`, `--disable-mkl`, and `--with-mkl-*` options have been
+removed. MKL remains required; use `MKL_CFLAGS` and `MKL_LIBS` to configure it.
+
+`compile.sh` is a convenience script using `icpx` by default. Executables are
 created in `src/infrared`, `src/raman`, `src/sfg`, and `src/power`.
 
 ## Workflows

@@ -138,9 +138,10 @@ files. The library is built as part of the repository build. The current matrix
 utility implementation requires Intel MKL's `mkl_lapacke.h` and LAPACKE
 libraries. Configuration checks compilation and linkage of `LAPACKE_dgetrf`,
 `LAPACKE_dgetri`, and `LAPACKE_dsyev` and stops if they are unavailable.
-`--disable-mkl` is unsupported. Set `--with-mkl-cflags` and
-`--with-mkl-libs` when the installation differs from the default `/opt/intel`
-paths; see the root README for an example. Build configuration supplies
+Set `MKL_CFLAGS` and `MKL_LIBS` for your installation and threading layer;
+there are no default installation paths or libraries. The old `--enable-mkl`,
+`--disable-mkl`, and `--with-mkl-*` options have been removed. See the root
+README for an example. Build configuration supplies
 `MKL_CFLAGS` and `MKL_LIBS` to the spectroscopy programs using this library.
 A generic LAPACKE installation alone does not provide the named MKL header.
 

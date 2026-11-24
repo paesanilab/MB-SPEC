@@ -1,4 +1,4 @@
-# MB-SPEC tests
+# Trajectory regression suites
 
 The suites validate IR dipoles and absorption spectra, Raman polarizabilities and
 spectra, collective-velocity power spectra, and SFG responses, complex spectra,
@@ -17,13 +17,20 @@ interface weighting and neighbor exclusion. Other checks verify equivalent input
 representations, atom exclusion, switching, normalization, and thread agreement.
 A named check may contain multiple calculations.
 
-After configuring and building MB-SPEC, run from `src/unittests` in the build tree:
+`make check` from the top-level build directory runs these suites, including
+the extended cases. After building the programs, use the following command
+from the top-level build directory to run these suites on their own.
 
 ```bash
-make check
+make -C src/unittests check
 ```
 
-Fixtures are in `inputs/`; saved settings and values are in `references/`.
-`generate_references.py` explicitly regenerates references; test execution never
-updates them.
+Fixtures are in `inputs/`. Saved settings and outputs are in `references/`,
+and `test-suite.log` and `.build/runs/` in the test build directory contain
+diagnostics. `make distclean` removes the generated test runs.
+
+To regenerate references deliberately, run `python3 generate_references.py --replace`
+from this source directory. For an out-of-tree build, point `--bindir` at that
+build's `src/` directory. The [small workflow tests](../../tests/README.md) have
+their own fixtures and reference-generation procedure.
 

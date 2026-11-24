@@ -43,6 +43,7 @@ jobs:
           path: |
             config.log
             src/tools/*.log
+            src/unittests/*.log
             tests/*.log
 
   sanitizers:
@@ -72,6 +73,7 @@ jobs:
           path: |
             config.log
             src/tools/*.log
+            src/unittests/*.log
             tests/*.log
 
   mkl:
@@ -100,6 +102,7 @@ jobs:
           path: |
             config.log
             src/tools/*.log
+            src/unittests/*.log
             tests/*.log
 
   reference-check:

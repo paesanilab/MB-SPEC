@@ -6,14 +6,12 @@ For water, MB-SPEC includes built-in many-body dipole moment (MB-$`\mu`$) and po
 ## Build
 
 MB-SPEC requires a C++17 or newer compiler with OpenMP support and a LAPACKE
-implementation with LP64 (32-bit integer) headers and libraries. Generic
-LAPACKE is the default; Intel MKL is optional. No C compiler, GSL or other
-libraries are required. Only `mbspec-ir-dipole` links LAPACKE. Bootstrapping from a Git
-checkout requires Autoconf 2.70+ and Automake 1.16+. The Autoconf macros it
-uses (from the GNU Autoconf Archive and pkgconf) are included in `m4/`, so no
-separate Autoconf Archive or pkg-config macro installation is
-needed. The vendored macros' upstream revisions are recorded in `m4/README.md`. Release tarballs
-include the generated `configure` script.
+implementation with LP64 (32-bit integer) headers and libraries. The default
+backend is generic LAPACKE, with Intel MKL available as an option.
+`mbspec-ir-dipole` is the only installed program that links LAPACKE.
+Bootstrapping from a Git checkout requires Autoconf 2.70+ and Automake 1.16+.
+The required macros from the GNU Autoconf Archive and pkgconf are bundled in
+[`m4/`](m4/README.md). Release tarballs include the generated `configure` script.
 
 For a generic LAPACKE installation on the compiler's normal search paths:
 
@@ -88,12 +86,6 @@ automatically. Two options are meant for development:
   aborts the program, so `make check` fails. The generated polynomial library
   is not instrumented (see `src/tools/README.md`).
 
-`make check` runs unit tests of the matrix routines and the 2B polynomial,
-and end-to-end tests of every workflow. The workflow tests compare each
-stage's output with reference outputs from the `master` branch; see
-`tests/README.md`. The regression suites in `src/unittests/` also check numerical
-references, analytical cases, and agreement across input formats and thread counts.
-
 The old `MKL_CFLAGS` and `MKL_LIBS` variables are ignored with a warning. Rename them to
 `LAPACKE_CFLAGS` and `LAPACKE_LIBS` and add `--with-lapack=mkl` to retain an
 MKL build. The legacy `--enable-mkl`, `--disable-mkl`, and `--with-mkl-*`
@@ -123,13 +115,20 @@ the water refractive-index tables are installed to `$prefix/share/mb-spec/sfg/`.
 `fresnel.json` refers to the tables by relative path, so copy
 `fresnel.json` and `fresnel_factors/` into your working directory.
 
-The workflow commands below assume the programs are on your `PATH`.
+## Testing
+
+Run `make check` from the top-level build directory. It runs the matrix and
+2B polynomial unit tests, the [small end-to-end workflow tests](tests/README.md)
+against a pinned pre-modernization `master` commit, and the
+[trajectory regression suites](src/unittests/README.md) for numerical,
+analytical, input-format, and threading checks.
 
 ## Workflows
 
-Use `OMP_NUM_THREADS` to set parallelism for stages that support OpenMP. 
-The trajectory may be LAMMPS or `.xyz` format.
-All variables for `INFRARED`, `RAMAN`, `SFG`, and `POWER` are specified in the JSON file.
+The commands below use the installed programs on your `PATH`. Copy the
+corresponding JSON file from [json_template/](json_template/) and adjust it for
+your trajectory. Use `OMP_NUM_THREADS` to set parallelism for stages that support
+OpenMP.
 
 ## IR
 
@@ -139,7 +138,9 @@ mbspec-ir-response dipole.dat ir.json > response.dat
 mbspec-ir-spectrum response.dat ir.json > spectrum.dat
 ```
 
-Needs `INFRARED` JSON and coordinates; external dipole mode also needs dipoles.
+IR takes LAMMPS coordinates and dipole columns in external dipole mode. The
+internal water dipole model (`DMS=true`) accepts LAMMPS coordinates or XYZ.
+See the [IR guide](src/infrared/README.md).
 
 ## Raman
 
@@ -149,20 +150,19 @@ mbspec-raman-response polarizability.dat raman.json > response.dat
 mbspec-raman-spectrum response.dat raman.json > spectrum.dat
 ```
 
-Needs `RAMAN` JSON and coordinates.
+The water polarizability stage accepts coordinates in LAMMPS or XYZ format.
+See the [Raman guide](src/raman/README.md).
 
 ## SFG
 
 ```bash
 mbspec-sfg-response trajectory.lammpstrj sfg.json > response.dat
 mbspec-sfg-spectrum response.dat sfg.json > spectrum.dat
-mbspec-sfg-fresnel fresnel.json
 ```
 
-Needs `SFG` JSON, coordinates, and dipoles.
-
-The fresnel factor calculation also requires the three SFG tensor component files (xxz.dat, zzz.dat, and xzx.dat) 
-and the refractive index files in `src/sfg/fresnel_factors/`. 
+SFG takes a LAMMPS water slab trajectory with coordinate and dipole columns.
+The optional Fresnel step uses the `xxz`, `zzz`, and `xzx` component spectra
+and the water refractive-index tables. See [Fresnel post-processing](src/sfg/README.md#fresnel-post-processing).
 
 ## Power
 
@@ -171,7 +171,8 @@ mbspec-power-response trajectory.lammpstrj power.json > response.dat
 mbspec-power-spectrum response.dat power.json > spectrum.dat
 ```
 
-Needs `POWER` JSON and velocities. 
+Power takes LAMMPS dump files with `vx`, `vy`, and `vz` columns or XYZ files
+whose atom rows contain velocities. See the [power spectrum guide](src/power/README.md).
 
 ## References
 

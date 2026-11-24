@@ -22,3 +22,7 @@ EXTRA_DIST = README.md generate_references.py reference_cases.py \
              inputs/air-water.lammpstrj inputs/graphene-water.lammpstrj \
              inputs/alumina.xyz inputs/alumina.lammpstrj \
              references/ir.json references/raman.json references/power.json references/sfg.json
+
+# Test runs retain diagnostics until the build tree is cleaned for distribution.
+distclean-local:
+	rm -rf .build/runs

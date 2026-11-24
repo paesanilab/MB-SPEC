@@ -644,12 +644,10 @@ inline void regression_checks(Suite& suite) {
             for (const std::string component : {"xxz", "zzz", "xzx"}) {
                 const std::string source = entry.at("components").at(component);
                 require(actual_outputs.count(source), "component reference did not pass: " + source);
-                Table positive;
-                for (const auto& row : table(actual_outputs.at(source), 4))
-                    if (row[0] > 0)
-                        positive.push_back(row);
+                // Pass the full grid to verify that Fresnel skips zero wavenumber.
                 config[component + "_file"] =
-                    suite.fixture("fresnel-" + component + ".dat", serialize(positive)).string();
+                    suite.fixture("fresnel-" + component + ".dat",
+                                  contents(actual_outputs.at(source))).string();
             }
             for (const std::string key :
                  {"water_refractive_index_n_file", "water_refractive_index_k_file"}) {

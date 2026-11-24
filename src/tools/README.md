@@ -156,10 +156,10 @@ unsupported. The old `MKL_CFLAGS` and `MKL_LIBS` variables are ignored with a
 warning: rename them to the LAPACKE variables and select `--with-lapack=mkl` for MKL.
 The legacy `--enable-mkl`, `--disable-mkl`, and `--with-mkl-*` options remain
 removed. See the root README for generic, custom-library, and MKL examples.
-Build configuration links the selected LAPACKE libraries only into
-`mbspec-ir-dipole`, the one program that calls them (through `ltp2011`), and
-the matrix test. `make check` runs numerical matrix tests against
-the selected implementation; the test executable is not installed.
+The selected LAPACKE libraries are linked into `mbspec-ir-dipole` for the
+LTP2011 model, `test-mat-tools` for the matrix routines, and `unittest-ir` for
+the IR regression suite. `make check` runs both test executables against the
+selected implementation.
 
 `Makefile.in`, `Makefile`, `.deps/`, `*.o`, `libtools.a` and `libpoly.a` are
 generated build files.

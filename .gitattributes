@@ -1,6 +1,7 @@
 # The trajectory readers require LF line endings, and the test scripts are
 # run by /bin/sh; keep them LF on every checkout.
 tests/** text eol=lf
+src/unittests/inputs/** text eol=lf
 *.sh text eol=lf
 *.test text eol=lf
 *.m4 text eol=lf

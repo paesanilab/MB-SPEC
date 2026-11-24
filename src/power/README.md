@@ -4,9 +4,13 @@ POWER computes the autocorrelation of the total atomic velocity and transforms
 it into a normalized spectrum. This collective observable includes cross terms
 between atoms; it differs from a sum of per-atom velocity autocorrelations.
 
+Copy [the power template](../../json_template/power.json) to your working directory
+as `power.json`. Set the frame interval and skip count for your trajectory before
+running the two stages.
+
 ```bash
-mbspec-power-response trajectory.lammpstrj mb-spec.json > response.dat
-mbspec-power-spectrum response.dat mb-spec.json > spectrum.dat
+mbspec-power-response trajectory.lammpstrj power.json > response.dat
+mbspec-power-spectrum response.dat power.json > spectrum.dat
 ```
 
 ## Units
@@ -40,7 +44,7 @@ Put all settings inside `POWER`.
 ```jsonc
 {
   "POWER": {
-    "box": [0.0, 10.0, 0.0, 10.0, 0.0, 10.0],    // Required for XYZ only, in Å; unused by the velocity observable
+    "box": [0.00, 19.66, 0.00, 19.66, 0.00, 19.66], // Required for XYZ only, in Å; unused by the velocity observable
     "imcon": 2,                                  // XYZ cell convention: 1 cubic, 2 orthorhombic (default), 3 triclinic
     "dump_frequency": 0.004,                     // Required frame interval in ps
     "trajectory_duration_ps": 0.0,               // Duration read in ps; 0 reads all frames (default)

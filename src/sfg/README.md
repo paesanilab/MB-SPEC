@@ -1,21 +1,18 @@
 # Sum-frequency generation spectra with MB-SPEC
 
-The SFG workflow calculates a truncated dipole-polarizability cross-correlation function for water.
-It requires a water slab trajectory with the permanent and induced dipole columns required by the reader.
+The SFG workflow calculates a truncated dipole-polarizability cross-correlation
+function for water. The input is a LAMMPS water slab trajectory with permanent
+and induced dipole columns.
 
-Run:
+Copy [the SFG template](../../json_template/sfg.json) to your working directory
+as `sfg.json` and set the trajectory parameters before running the workflow.
 
 ```bash
 OMP_NUM_THREADS=4 mbspec-sfg-response trajectory.lammpstrj sfg.json > response.dat
 mbspec-sfg-spectrum response.dat sfg.json > spectrum.dat
 ```
 
-Optionally apply Fresnel factors after calculating the component spectra:
-
-```bash
-mbspec-sfg-fresnel fresnel.json
-```
-
+See [Fresnel post-processing](#fresnel-post-processing) for the optional optical step.
 
 ## Units
 
@@ -48,7 +45,7 @@ mbspec-sfg-fresnel fresnel.json
 ```jsonc
 {
   "SFG": {
-    "box": [0.0,24.79,0.0,24.79,0.0,100.0],      // Reference cell in Å; unused by current SFG stages
+    "box": [0.0, 24.7977, 0.0, 24.7977, 0.0, 100.0], // Reference cell in Å; unused by current SFG stages
     "imcon": 2,                                  // Cell convention: 1 cubic, 2 orthorhombic (default), 3 triclinic
     "dump_frequency": 0.004,                     // Frame interval in ps
     "skip_initial_atoms": 0,                     // Omit leading records; retain O–H–H triplets; default 0
@@ -83,7 +80,7 @@ mbspec-sfg-fresnel fresnel.json
 
 ## Trajectory input
 
-`response` accepts one LAMMPS dump trajectory.
+`mbspec-sfg-response` accepts one LAMMPS dump trajectory.
 The reader identifies fields from the `ITEM: ATOMS` header.
 It requires exactly one coordinate triplet of `x y z`, `xu yu zu`, `xs ys zs`, or `xsu ysu zsu`;
 scaled coordinates are converted with the LAMMPS box matrix and origin.
@@ -338,6 +335,24 @@ The indices $i$, $j$, and $k$ refer to the sum-frequency, visible, and infrared 
 This optional optical step reads reduced complex component spectra and produces
 squared amplitudes for SSP, PSS, SPS, and PPP spectra.
 
+Make three copies of your SFG configuration named `sfg-xxz.json`,
+`sfg-zzz.json`, and `sfg-xzx.json`. In each copy, set `SFG.ijk` to the
+corresponding component and use the same wavenumber grid for all three spectra.
+Copy `fresnel.json` and `fresnel_factors/` from `src/sfg/` or the installed
+`$prefix/share/mb-spec/sfg/` directory into your working directory. The program
+resolves paths in `fresnel.json` from that working directory.
+
+```bash
+for ijk in xxz zzz xzx; do
+    mbspec-sfg-response trajectory.lammpstrj "sfg-$ijk.json" > "response-$ijk.dat"
+    mbspec-sfg-spectrum "response-$ijk.dat" "sfg-$ijk.json" > "$ijk.dat"
+done
+mbspec-sfg-fresnel fresnel.json
+```
+
+The example configuration writes `sfg_ssp.dat`, `sfg_pss.dat`, `sfg_sps.dat`,
+and `sfg_ppp.dat`.
+
 ### Fresnel JSON options
 
 ```jsonc
@@ -373,6 +388,10 @@ $$
 \widetilde\nu=\widetilde\nu_0-\Delta\widetilde\nu,
 \qquad\Delta\widetilde\nu=\mathrm{redshift\_cm1}.
 $$
+
+The calculation skips any row whose wavenumber after the shift is zero. With
+`redshift_cm1` set to `0.0`, the zero-wavenumber input row is skipped and the
+remaining wavenumbers are unchanged.
 
 Frequencies below are ordinary frequencies in GHz, with wavelengths in µm:
 

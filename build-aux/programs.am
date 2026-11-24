@@ -1,0 +1,4 @@
+# Shared settings for the spectroscopy programs, which link against libtools.
+include $(top_srcdir)/build-aux/common.am
+
+LDADD = $(top_builddir)/src/tools/libtools.a $(LAPACKE_LIBS)

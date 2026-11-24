@@ -1,6 +1,4 @@
-include $(top_srcdir)/build-aux/common.am
-
-LDADD = $(top_builddir)/src/tools/libtools.a $(LAPACKE_LIBS)
+include $(top_srcdir)/build-aux/programs.am
 
 noinst_PROGRAMS = response \
 	       spectrum \

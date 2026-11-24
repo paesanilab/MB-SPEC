@@ -14,6 +14,10 @@ AC_PROG_RANLIB
 AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory])
 AC_LANG([C++])
 
+# Enable common warnings for GCC-compatible compilers (GCC, Clang, icpx).
+AS_IF([test "x$GXX" = xyes], [WARN_CXXFLAGS=-Wall], [WARN_CXXFLAGS=])
+AC_SUBST([WARN_CXXFLAGS])
+
 # OpenMP is required: the programs call its runtime functions directly.
 AC_OPENMP
 AS_IF([test "x$enable_openmp" = xno || test "x$ac_cv_prog_cxx_openmp" = xunsupported],
@@ -31,22 +35,31 @@ AS_CASE([$with_lapack],
 
 AC_ARG_VAR([LAPACKE_CFLAGS], [LAPACKE compile flags for the selected implementation])
 AC_ARG_VAR([LAPACKE_LIBS], [LAPACKE linker flags and libraries for the selected implementation])
+# Warn rather than fail: MKL environment modules may export these variables.
 AS_IF([test "${MKL_CFLAGS+set}" = set || test "${MKL_LIBS+set}" = set],
-    [AC_MSG_ERROR([MKL_CFLAGS and MKL_LIBS have been removed. Use --with-lapack=mkl with LAPACKE_CFLAGS and LAPACKE_LIBS instead.])])
+    [AC_MSG_WARN([MKL_CFLAGS and MKL_LIBS are ignored. Use --with-lapack=mkl with LAPACKE_CFLAGS and LAPACKE_LIBS instead.])])
 
 saved_LIBS=$LIBS
 saved_CXXFLAGS=$CXXFLAGS
-CXXFLAGS="$OPENMP_CXXFLAGS $LAPACKE_CFLAGS $CXXFLAGS"
 # An explicitly supplied LAPACKE_LIBS value, even empty, never falls back.
-AS_IF([test "${LAPACKE_LIBS+set}" = set || test "$with_lapack" = mkl],
-    [lapacke_candidates=user],
+# Without one, MKL first tries the compiler's own MKL support (e.g. -qmkl),
+# then the sequential LP64 libraries under $MKLROOT when it is set.
+AS_IF([test "${LAPACKE_LIBS+set}" = set], [lapacke_candidates=user],
+    [test "$with_lapack" = mkl && test -n "$MKLROOT"], [lapacke_candidates="user mklroot"],
+    [test "$with_lapack" = mkl], [lapacke_candidates=user],
     [lapacke_candidates="lapacke lapacke_with_blas"])
 lapacke_found=no
 for lapacke_candidate in $lapacke_candidates; do
+    lapacke_try_CFLAGS=$LAPACKE_CFLAGS
     AS_CASE([$lapacke_candidate],
         [user], [lapacke_try_LIBS=$LAPACKE_LIBS],
+        [mklroot],
+        [AS_IF([test "${LAPACKE_CFLAGS+set}" != set],
+             [lapacke_try_CFLAGS="-I${MKLROOT}/include"])
+         lapacke_try_LIBS="-L${MKLROOT}/lib -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl"],
         [lapacke], [lapacke_try_LIBS=-llapacke],
         [lapacke_with_blas], [lapacke_try_LIBS="-llapacke -llapack -lblas"])
+    CXXFLAGS="$OPENMP_CXXFLAGS $lapacke_try_CFLAGS $saved_CXXFLAGS"
     LIBS="$lapacke_try_LIBS $saved_LIBS"
     AC_MSG_CHECKING([for LP64 $with_lapack LAPACKE with libraries '$lapacke_try_LIBS'])
     AC_LINK_IFELSE(
@@ -61,7 +74,7 @@ for lapacke_candidate in $lapacke_candidates; do
         double eigenvalues[1];
         static_assert(sizeof(lapack_int) == 4 && sizeof(lapack_int) == sizeof(int),
                       "LP64 LAPACKE with 32-bit integers is required");
-        int pivots[1];
+        lapack_int pivots[1];
         lapack_int info = LAPACKE_dgetrf(LAPACK_ROW_MAJOR, 1, 1, a, 1, pivots);
         info += LAPACKE_dgetri(LAPACK_ROW_MAJOR, 1, a, 1, pivots);
         info += LAPACKE_dsyev(LAPACK_ROW_MAJOR, 'V', 'U', 1, a, 1, eigenvalues);
@@ -69,6 +82,7 @@ for lapacke_candidate in $lapacke_candidates; do
     ]])],
     [AC_MSG_RESULT([yes])
      lapacke_found=yes
+     LAPACKE_CFLAGS=$lapacke_try_CFLAGS
      LAPACKE_LIBS=$lapacke_try_LIBS
      break],
     [AC_MSG_RESULT([no])])
@@ -79,7 +93,8 @@ AS_IF([test "$lapacke_found" != yes],
     [AC_MSG_ERROR([LP64 $with_lapack LAPACKE is required, but its header or the
 LAPACKE_dgetrf, LAPACKE_dgetri, and LAPACKE_dsyev routines could not be compiled
 and linked. Set LAPACKE_CFLAGS and LAPACKE_LIBS for a matching LP64 installation.
-Generic builds require lapacke.h; --with-lapack=mkl requires mkl_lapacke.h.
+Generic builds require lapacke.h; --with-lapack=mkl requires mkl_lapacke.h
+(initialize your MKL environment so MKLROOT is set, or pass the flags).
 Explicit LAPACKE_LIBS are used without fallback. See config.log for details.])])
 
 AC_CONFIG_FILES([
@@ -101,6 +116,7 @@ AC_MSG_NOTICE([Configuration summary:
    LDFLAGS = $LDFLAGS
       LIBS = $LIBS
     OpenMP = $OPENMP_CXXFLAGS
+  Warnings = $WARN_CXXFLAGS
     LAPACK = $with_lapack
 LAPACKE_CFLAGS = $LAPACKE_CFLAGS
 LAPACKE_LIBS = $LAPACKE_LIBS

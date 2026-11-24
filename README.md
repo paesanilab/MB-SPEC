@@ -39,20 +39,27 @@ for a separate LAPACKE library. Its build can omit LAPACKE, so OpenBLAS alone
 does not guarantee that the required header and routines are available.
 
 Select Intel MKL explicitly with `--with-lapack=mkl`, which uses
-`<mkl_lapacke.h>`. After initializing your MKL environment, a Linux build
-using the sequential LP64 libraries can be configured as:
+`<mkl_lapacke.h>`. After initializing your MKL environment (so `MKLROOT` is
+set), a Linux build using the sequential LP64 libraries can be configured as:
 
 ```bash
-./configure --with-lapack=mkl CXX=c++ CXXFLAGS="-O2" \
-    LAPACKE_CFLAGS="-I${MKLROOT}/include" \
-    LAPACKE_LIBS="-L${MKLROOT}/lib -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl"
+./configure --with-lapack=mkl CXX=c++ CXXFLAGS="-O2"
 make -j4
 make check
 ```
 
-MKL builds use the supplied flags or compiler environment; configuration does
-not guess installation paths, architecture flags, libraries, or threading
-runtimes. For either implementation, the headers and libraries must agree on
+Without `LAPACKE_LIBS`, an MKL build first tries the compiler's own MKL
+support (for example `CXXFLAGS="-O2 -qmkl=sequential"` with `icpx`), then
+`-I${MKLROOT}/include` with the sequential LP64 libraries under `MKLROOT`.
+For other threading layers or layouts, pass the flags explicitly:
+
+```bash
+./configure --with-lapack=mkl CXX=c++ CXXFLAGS="-O2" \
+    LAPACKE_CFLAGS="-I${MKLROOT}/include" \
+    LAPACKE_LIBS="-L${MKLROOT}/lib -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl"
+```
+
+For either implementation, the headers and libraries must agree on
 the LP64 integer interface; ILP64 is unsupported. Configuration checks the
 header and compilation/linkage of all three required LAPACKE routines. It
 does not run numerical tests; `make check` tests inversion, singular-matrix
@@ -64,7 +71,10 @@ older than C++17. To select a newer mode, put its flag in `CXXFLAGS`, for exampl
 detected automatically; disabling OpenMP is unsupported because the programs
 call its runtime directly.
 
-The old `MKL_CFLAGS` and `MKL_LIBS` variables are rejected. Rename them to
+With GCC-compatible compilers (GCC, Clang, `icpx`), `-Wall` is added
+automatically.
+
+The old `MKL_CFLAGS` and `MKL_LIBS` variables are ignored with a warning. Rename them to
 `LAPACKE_CFLAGS` and `LAPACKE_LIBS` and add `--with-lapack=mkl` to retain an
 MKL build. The legacy `--enable-mkl`, `--disable-mkl`, and `--with-mkl-*`
 options remain removed. LAPACKE is required and cannot be disabled.
@@ -74,7 +84,8 @@ before changing compilers or compilation flags, then rerun `./configure`
 with the new settings and rebuild. Run
 `./autogen.sh` again after editing `configure.ac`, `Makefile.am`, or files in
 `m4/`. Executables are created in `src/infrared`, `src/raman`, `src/sfg`, and
-`src/power`.
+`src/power`. `make install` does not install them, because several workflows
+share program names (`response`, `spectrum`).
 
 Run the executables from the corresponding workflow directory, as shown below.
 

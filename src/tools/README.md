@@ -137,17 +137,17 @@ enabled.
 files. The library is built as part of the repository build. Matrix utilities
 require LP64 LAPACKE with 32-bit integers. The default `--with-lapack=generic`
 uses `lapacke.h` and tries `-llapacke`, then `-llapacke -llapack -lblas`.
-`--with-lapack=mkl` selects `mkl_lapacke.h` and uses supplied flags or the
-compiler environment, without guessing MKL paths, libraries, or threading
-runtimes. Configuration checks compilation and linkage of `LAPACKE_dgetrf`,
+`--with-lapack=mkl` selects `mkl_lapacke.h` and uses supplied flags, the
+compiler environment, or, failing those, the sequential LP64 libraries under
+`MKLROOT`. Configuration checks compilation and linkage of `LAPACKE_dgetrf`,
 `LAPACKE_dgetri`, and `LAPACKE_dsyev` and stops if they are unavailable.
 
 Set `LAPACKE_CFLAGS` and `LAPACKE_LIBS` for a custom installation or library
 combination. Explicit `LAPACKE_LIBS` are used unchanged, without fallback.
 OpenBLAS must include LAPACKE support or be paired with a separate LAPACKE
 library. Headers and libraries must use the same LP64 interface; ILP64 is
-unsupported. The old `MKL_CFLAGS` and `MKL_LIBS` variables are rejected:
-rename them to the LAPACKE variables and select `--with-lapack=mkl` for MKL.
+unsupported. The old `MKL_CFLAGS` and `MKL_LIBS` variables are ignored with a
+warning: rename them to the LAPACKE variables and select `--with-lapack=mkl` for MKL.
 The legacy `--enable-mkl`, `--disable-mkl`, and `--with-mkl-*` options remain
 removed. See the root README for generic, custom-library, and MKL examples.
 Build configuration supplies the selected LAPACKE flags to the spectroscopy

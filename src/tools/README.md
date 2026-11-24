@@ -38,7 +38,7 @@ In the tables below, `.cpp/.h` denotes an implementation and its public interfac
 | `ltp2011.cpp/.h` | LTP2011 one-body water dipole surface and laboratory-frame dipole evaluation. |
 | `ps.cpp/.h` | Partridge–Schwenke (PS) water monomer potential and dipole routines; supplies geometry-dependent charges to the TTM4 models and optional permanent dipoles to SFG. |
 | `dip_poly2b5.cpp/.h` | Fitted coefficients and evaluation of the explicit two-body dipole polynomial. |
-| `poly2b5.cpp/.h` | Polynomial basis evaluation used by `dip_poly2b5`. |
+| `poly2b5.cpp/.h`, `poly2b5-{ha1,ha2,hb1,hb2,oa,ob}.cpp` | Polynomial basis evaluation used by `dip_poly2b5`, with a wrapper and six separately compiled output blocks. |
 | `avila.cpp/.h` | Avila one-body water polarizability and transformation into the laboratory frame. |
 | `alpha-el-poly2b3.cpp/.h` | Fitted coefficients and evaluation of the explicit two-body polarizability correction. |
 | `poly-l-2b3.cpp/.h` | Polynomial basis evaluation used by `alpha-el-poly2b3`. |
@@ -134,23 +134,45 @@ enabled.
 ## Build and generated files
 
 `Makefile.am` defines `libtools.a`, its sources, and additional distribution
-files. The library is built as part of the repository build. The current matrix
-utility implementation requires Intel MKL's `mkl_lapacke.h` and LAPACKE
-libraries. Configuration checks compilation and linkage of `LAPACKE_dgetrf`,
+files. The library is built as part of the repository build. Matrix utilities
+require LP64 LAPACKE with 32-bit integers. The default `--with-lapack=generic`
+uses `lapacke.h` and tries `-llapacke`, then `-llapacke -llapack -lblas`.
+`--with-lapack=mkl` selects `mkl_lapacke.h` and uses supplied flags or the
+compiler environment, without guessing MKL paths, libraries, or threading
+runtimes. Configuration checks compilation and linkage of `LAPACKE_dgetrf`,
 `LAPACKE_dgetri`, and `LAPACKE_dsyev` and stops if they are unavailable.
-Set `MKL_CFLAGS` and `MKL_LIBS` for your installation and threading layer;
-there are no default installation paths or libraries. The old `--enable-mkl`,
-`--disable-mkl`, and `--with-mkl-*` options have been removed. See the root
-README for an example. Build configuration supplies
-`MKL_CFLAGS` and `MKL_LIBS` to the spectroscopy programs using this library.
-A generic LAPACKE installation alone does not provide the named MKL header.
+
+Set `LAPACKE_CFLAGS` and `LAPACKE_LIBS` for a custom installation or library
+combination. Explicit `LAPACKE_LIBS` are used unchanged, without fallback.
+OpenBLAS must include LAPACKE support or be paired with a separate LAPACKE
+library. Headers and libraries must use the same LP64 interface; ILP64 is
+unsupported. The old `MKL_CFLAGS` and `MKL_LIBS` variables are rejected:
+rename them to the LAPACKE variables and select `--with-lapack=mkl` for MKL.
+The legacy `--enable-mkl`, `--disable-mkl`, and `--with-mkl-*` options remain
+removed. See the root README for generic, custom-library, and MKL examples.
+Build configuration supplies the selected LAPACKE flags to the spectroscopy
+programs using this library. `make check` runs numerical matrix tests against
+the selected implementation; the test executable is not installed.
 
 `Makefile.in`, `Makefile`, `.deps/`, `*.o`, and `libtools.a` are generated build
 files.
 
-The large `poly2b5.cpp` and `poly-l-2b3.cpp` files contain explicit polynomial
-basis expressions; their fitted coefficients reside in the corresponding
-`dip_poly2b5.cpp` and `alpha-el-poly2b3.cpp` model files.
+The `poly2b5.cpp` wrapper evaluates the six output blocks in their original
+order. Their explicit polynomial assignments are kept in
+`poly2b5-{ha1,ha2,hb1,hb2,oa,ob}.cpp`, with private declarations in
+`poly2b5-internal.h`. Separate translation units reduce optimization work per
+compiler invocation and allow `make -j4` to compile the blocks concurrently,
+without lowering the optimization level or changing the polynomial expressions.
+The public `cpt_poly2b5` interface is unchanged.
+
+`make check` also runs polynomial regression tests against reference values
+captured from the original implementation. Binary-fraction inputs allow exact
+comparison of all 9,408 outputs. The tests cover zero inputs, two asymmetric
+input pairs, output bounds, and overlapping output arrays.
+
+The large `poly-l-2b3.cpp` file also contains explicit polynomial basis
+expressions. Fitted coefficients remain in `dip_poly2b5.cpp` and
+`alpha-el-poly2b3.cpp`.
 
 ## Scientific references
 

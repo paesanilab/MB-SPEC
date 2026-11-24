@@ -19,34 +19,68 @@ AC_OPENMP
 AS_IF([test "x$enable_openmp" = xno || test "x$ac_cv_prog_cxx_openmp" = xunsupported],
     [AC_MSG_ERROR([MB-SPEC requires a C++ compiler with OpenMP support; --disable-openmp is unsupported.])])
 
-# Select the MKL installation and threading layer explicitly; LP64 is required.
-AC_ARG_VAR([MKL_CFLAGS], [MKL compile flags])
-AC_ARG_VAR([MKL_LIBS], [MKL linker flags and libraries])
+# LAPACKE is required; MKL is an explicitly selected implementation.
+AC_ARG_WITH([lapack],
+    [AS_HELP_STRING([--with-lapack=generic|mkl],
+        [LAPACKE implementation to use @<:@default=generic@:>@])],
+    [], [with_lapack=generic])
+AS_CASE([$with_lapack],
+    [generic], [],
+    [mkl], [AC_DEFINE([USE_MKL], [1], [Use Intel MKL's LAPACKE header.])],
+    [AC_MSG_ERROR([--with-lapack must be generic or mkl; LAPACKE cannot be disabled.])])
+
+AC_ARG_VAR([LAPACKE_CFLAGS], [LAPACKE compile flags for the selected implementation])
+AC_ARG_VAR([LAPACKE_LIBS], [LAPACKE linker flags and libraries for the selected implementation])
+AS_IF([test "${MKL_CFLAGS+set}" = set || test "${MKL_LIBS+set}" = set],
+    [AC_MSG_ERROR([MKL_CFLAGS and MKL_LIBS have been removed. Use --with-lapack=mkl with LAPACKE_CFLAGS and LAPACKE_LIBS instead.])])
 
 saved_LIBS=$LIBS
 saved_CXXFLAGS=$CXXFLAGS
-LIBS="$MKL_LIBS $LIBS"
-CXXFLAGS="$OPENMP_CXXFLAGS $MKL_CFLAGS $CXXFLAGS"
-AC_MSG_CHECKING([for required MKL LAPACKE routines])
-AC_LINK_IFELSE(
-    [AC_LANG_PROGRAM([[#include <mkl_lapacke.h>]], [[
+CXXFLAGS="$OPENMP_CXXFLAGS $LAPACKE_CFLAGS $CXXFLAGS"
+# An explicitly supplied LAPACKE_LIBS value, even empty, never falls back.
+AS_IF([test "${LAPACKE_LIBS+set}" = set || test "$with_lapack" = mkl],
+    [lapacke_candidates=user],
+    [lapacke_candidates="lapacke lapacke_with_blas"])
+lapacke_found=no
+for lapacke_candidate in $lapacke_candidates; do
+    AS_CASE([$lapacke_candidate],
+        [user], [lapacke_try_LIBS=$LAPACKE_LIBS],
+        [lapacke], [lapacke_try_LIBS=-llapacke],
+        [lapacke_with_blas], [lapacke_try_LIBS="-llapacke -llapack -lblas"])
+    LIBS="$lapacke_try_LIBS $saved_LIBS"
+    AC_MSG_CHECKING([for LP64 $with_lapack LAPACKE with libraries '$lapacke_try_LIBS'])
+    AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([[
+#ifdef USE_MKL
+#include <mkl_lapacke.h>
+#else
+#include <lapacke.h>
+#endif
+    ]], [[
         double a[1] = {1.0};
         double eigenvalues[1];
-        static_assert(sizeof(lapack_int) == sizeof(int), "LP64 MKL is required");
+        static_assert(sizeof(lapack_int) == 4 && sizeof(lapack_int) == sizeof(int),
+                      "LP64 LAPACKE with 32-bit integers is required");
         int pivots[1];
         lapack_int info = LAPACKE_dgetrf(LAPACK_ROW_MAJOR, 1, 1, a, 1, pivots);
         info += LAPACKE_dgetri(LAPACK_ROW_MAJOR, 1, a, 1, pivots);
         info += LAPACKE_dsyev(LAPACK_ROW_MAJOR, 'V', 'U', 1, a, 1, eigenvalues);
         return info;
     ]])],
-    [AC_MSG_RESULT([yes])],
-    [AC_MSG_RESULT([no])
-     AC_MSG_ERROR([LP64 MKL is required, but mkl_lapacke.h or the LAPACKE_dgetrf,
-LAPACKE_dgetri, and LAPACKE_dsyev routines could not be compiled and linked.
-Set MKL_CFLAGS and MKL_LIBS for your Intel MKL installation and threading layer.
-See config.log for the compiler or linker error.])])
+    [AC_MSG_RESULT([yes])
+     lapacke_found=yes
+     LAPACKE_LIBS=$lapacke_try_LIBS
+     break],
+    [AC_MSG_RESULT([no])])
+done
 CXXFLAGS=$saved_CXXFLAGS
 LIBS=$saved_LIBS
+AS_IF([test "$lapacke_found" != yes],
+    [AC_MSG_ERROR([LP64 $with_lapack LAPACKE is required, but its header or the
+LAPACKE_dgetrf, LAPACKE_dgetri, and LAPACKE_dsyev routines could not be compiled
+and linked. Set LAPACKE_CFLAGS and LAPACKE_LIBS for a matching LP64 installation.
+Generic builds require lapacke.h; --with-lapack=mkl requires mkl_lapacke.h.
+Explicit LAPACKE_LIBS are used without fallback. See config.log for details.])])
 
 AC_CONFIG_FILES([
   Makefile
@@ -67,6 +101,7 @@ AC_MSG_NOTICE([Configuration summary:
    LDFLAGS = $LDFLAGS
       LIBS = $LIBS
     OpenMP = $OPENMP_CXXFLAGS
-MKL_CFLAGS = $MKL_CFLAGS
-  MKL_LIBS = $MKL_LIBS
+    LAPACK = $with_lapack
+LAPACKE_CFLAGS = $LAPACKE_CFLAGS
+LAPACKE_LIBS = $LAPACKE_LIBS
     prefix = $prefix])

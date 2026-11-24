@@ -1,6 +1,6 @@
 include $(top_srcdir)/build-aux/common.am
 
-LDADD = $(top_builddir)/src/tools/libtools.a $(MKL_LIBS)
+LDADD = $(top_builddir)/src/tools/libtools.a $(LAPACKE_LIBS)
 
 noinst_PROGRAMS = polarizability \
 	       response \

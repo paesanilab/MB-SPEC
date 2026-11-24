@@ -5,26 +5,58 @@ For water, MB-SPEC includes built-in many-body dipole moment (MB-$`\mu`$) and po
 
 ## Build
 
-MB-SPEC requires a C++17 or newer compiler with OpenMP support and Intel MKL
-with its LAPACKE headers and LP64 libraries. A C compiler is also used by
+MB-SPEC requires a C++17 or newer compiler with OpenMP support and a LAPACKE
+implementation with LP64 (32-bit integer) headers and libraries. Generic
+LAPACKE is the default; Intel MKL is optional. A C compiler is also used by
 Automake's archiver detection. GSL is not required. Bootstrapping from a Git
 checkout requires Autoconf 2.70+ and Automake 1.16+. The GNU Autoconf Archive
 C++ standard check is included in `m4/`; no separate Archive installation is
 needed. Its upstream revision is recorded in `m4/README.md`. Release tarballs
 include the generated `configure` script.
 
-Supply `MKL_CFLAGS` and `MKL_LIBS` for your installation and threading layer.
-Configuration does not assume installation paths, architecture flags, or an
-OpenMP runtime. After initializing your MKL environment, a Linux build using
-the sequential LP64 libraries can be configured from the repository root as:
+For a generic LAPACKE installation on the compiler's normal search paths:
 
 ```bash
 ./autogen.sh                 # Git checkouts only
-./configure CXX=c++ CXXFLAGS="-O2" \
-    MKL_CFLAGS="-I${MKLROOT}/include" \
-    MKL_LIBS="-L${MKLROOT}/lib -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl"
+./configure CXX=c++ CXXFLAGS="-O2"
 make -j4
+make check
 ```
+
+The default `--with-lapack=generic` uses `<lapacke.h>` and tries `-llapacke`,
+then `-llapacke -llapack -lblas`. Supply `LAPACKE_CFLAGS` and `LAPACKE_LIBS`
+for a custom installation or library combination, for example:
+
+```bash
+./configure CXX=c++ CXXFLAGS="-O2" \
+    LAPACKE_CFLAGS="-I/path/to/lapack/include" \
+    LAPACKE_LIBS="-L/path/to/lapack/lib -llapacke -llapack -lblas"
+```
+
+Explicit `LAPACKE_LIBS`, including an empty value, are validated and used
+without fallback. OpenBLAS can provide LAPACKE itself or serve as the backend
+for a separate LAPACKE library. Its build can omit LAPACKE, so OpenBLAS alone
+does not guarantee that the required header and routines are available.
+
+Select Intel MKL explicitly with `--with-lapack=mkl`, which uses
+`<mkl_lapacke.h>`. After initializing your MKL environment, a Linux build
+using the sequential LP64 libraries can be configured as:
+
+```bash
+./configure --with-lapack=mkl CXX=c++ CXXFLAGS="-O2" \
+    LAPACKE_CFLAGS="-I${MKLROOT}/include" \
+    LAPACKE_LIBS="-L${MKLROOT}/lib -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl"
+make -j4
+make check
+```
+
+MKL builds use the supplied flags or compiler environment; configuration does
+not guess installation paths, architecture flags, libraries, or threading
+runtimes. For either implementation, the headers and libraries must agree on
+the LP64 integer interface; ILP64 is unsupported. Configuration checks the
+header and compilation/linkage of all three required LAPACKE routines. It
+does not run numerical tests; `make check` tests inversion, singular-matrix
+failure, and symmetric eigenvalues against the selected implementation.
 
 Configuration enables C++17 using compiler-specific flags and rejects modes
 older than C++17. To select a newer mode, put its flag in `CXXFLAGS`, for example
@@ -32,8 +64,10 @@ older than C++17. To select a newer mode, put its flag in `CXXFLAGS`, for exampl
 detected automatically; disabling OpenMP is unsupported because the programs
 call its runtime directly.
 
-The legacy `--enable-mkl`, `--disable-mkl`, and `--with-mkl-*` options have been
-removed. MKL remains required; use `MKL_CFLAGS` and `MKL_LIBS` to configure it.
+The old `MKL_CFLAGS` and `MKL_LIBS` variables are rejected. Rename them to
+`LAPACKE_CFLAGS` and `LAPACKE_LIBS` and add `--with-lapack=mkl` to retain an
+MKL build. The legacy `--enable-mkl`, `--disable-mkl`, and `--with-mkl-*`
+options remain removed. LAPACKE is required and cannot be disabled.
 
 Use `make -jN` to select the number of parallel build jobs. Run `make clean`
 before changing compilers or compilation flags, then rerun `./configure`

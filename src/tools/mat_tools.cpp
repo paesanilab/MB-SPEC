@@ -1,11 +1,16 @@
+#include "config.h"
+
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include "mat_tools.h"
+#ifdef USE_MKL
 #include <mkl_lapacke.h>
-//#include "mkl_lapacke.h"
+#else
+#include <lapacke.h>
+#endif
 
 extern "C" {
     // LU decomoposition of a general matrix

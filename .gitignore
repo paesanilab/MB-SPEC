@@ -24,3 +24,9 @@ Makefile.in
 *.a
 /mb-spec-*.tar.*
 /mb-spec-*/
+
+# Automake test executables and reports.
+/src/tools/test-mat-tools
+/src/tools/test-poly2b5
+/src/tools/test-*.log
+/src/tools/test-*.trs

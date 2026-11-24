@@ -2,5 +2,6 @@
 *.o
 response
 spectrum
+fresnel
 Makefile
 Makefile.in

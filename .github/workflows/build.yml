@@ -2,63 +2,91 @@ name: build
 
 on:
   push:
+    branches: [master]
   pull_request:
+    branches: [master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     name: ${{ matrix.cxx }} / generic LAPACKE
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         include:
           - cxx: g++
             packages: ""
-          - cxx: clang++
-            packages: clang libomp-dev
+          - cxx: clang++-21
+            packages: clang-21 libomp-21-dev
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake make pkgconf liblapacke-dev ${{ matrix.packages }}
       - name: Bootstrap
-        run: ./autogen.sh
+        run: autoreconf -fi
       - name: Configure
         run: ./configure CXX=${{ matrix.cxx }} --enable-werror
+      # The GCC distribution check builds and tests the extracted archive.
       - name: Build
+        if: matrix.cxx != 'g++'
         run: make -j"$(nproc)"
       - name: Test
+        if: matrix.cxx != 'g++'
         run: make -j"$(nproc)" check
       - name: Distribution check
-        run: make -j"$(nproc)" distcheck DISTCHECK_CONFIGURE_FLAGS="CXX=${{ matrix.cxx }}"
+        if: matrix.cxx == 'g++'
+        run: make -j"$(nproc)" distcheck DISTCHECK_CONFIGURE_FLAGS="CXX=g++ --enable-werror"
       - name: Upload logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: logs-${{ matrix.cxx }}
+          retention-days: 7
+          include-hidden-files: true
           path: |
             config.log
             src/tools/*.log
             src/unittests/*.log
+            src/unittests/.build/runs/**/stderr.log
             tests/*.log
+            mb-spec-*/_build/sub/config.log
+            mb-spec-*/_build/sub/src/tools/*.log
+            mb-spec-*/_build/sub/src/unittests/*.log
+            mb-spec-*/_build/sub/src/unittests/.build/runs/**/stderr.log
+            mb-spec-*/_build/sub/tests/*.log
 
   sanitizers:
     name: g++ / ASan + UBSan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake make pkgconf liblapacke-dev
       - name: Bootstrap
-        run: ./autogen.sh
+        run: autoreconf -fi
       - name: Configure
-        run: ./configure --enable-werror --enable-sanitizers
+        run: ./configure CXX=g++ --enable-werror --enable-sanitizers
       - name: Build
         run: make -j"$(nproc)"
       - name: Test
@@ -67,71 +95,131 @@ jobs:
         run: make -j"$(nproc)" check
       - name: Upload logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: logs-sanitizers
+          retention-days: 7
+          include-hidden-files: true
           path: |
             config.log
             src/tools/*.log
             src/unittests/*.log
+            src/unittests/.build/runs/**/stderr.log
             tests/*.log
 
   mkl:
     name: g++ / Intel MKL
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    env:
+      MKLROOT: /opt/intel/oneapi/mkl/2026.2
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Install dependencies
-        run: sh .github/install-mkl.sh autoconf automake make pkgconf
+        run: sh .github/install-mkl.sh autoconf automake make pkgconf intel-oneapi-mkl-core-devel-2026.2
       - name: Bootstrap
-        run: ./autogen.sh
-      - name: Configure (MKL found automatically)
+        run: autoreconf -fi
+      - name: Configure, build and test
         run: |
-          set +u; . /opt/intel/oneapi/setvars.sh; set -u
-          ./configure --with-lapack=mkl --enable-werror
-      - name: Build and test
-        run: |
-          set +u; . /opt/intel/oneapi/setvars.sh; set -u
+          export PKG_CONFIG_PATH="$MKLROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+          export LD_LIBRARY_PATH="$MKLROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          ./configure CXX=g++ --with-lapack=mkl --enable-werror
           make -j"$(nproc)"
           make -j"$(nproc)" check
       - name: Upload logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: logs-mkl
+          retention-days: 7
+          include-hidden-files: true
           path: |
             config.log
             src/tools/*.log
             src/unittests/*.log
+            src/unittests/.build/runs/**/stderr.log
             tests/*.log
 
   reference-check:
-    # Regenerate the workflow-test references from an unmodified build of the
-    # pre-modernization master commit recorded in tests/reference/PROVENANCE,
-    # and compare them with the committed tests/reference/. This proves that
-    # the committed references really come from that master. The commit is
-    # pinned because the master branch itself moves once this build lands.
-    name: references match master
-    runs-on: ubuntu-latest
+    name: Historical reference comparison
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
     env:
       MASTER_COMMIT: c516736c3946166e0ee81b2198854a67da660c99
+      CXX: clang++-21
+      LLVM_VERSION: '1:21.1.8-6ubuntu1'
+      MKL_VERSION: '2026.2.1-11'
+      MKLROOT: /opt/intel/oneapi/mkl/2026.2
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v7
         with:
           ref: ${{ env.MASTER_COMMIT }}
-          path: master
+          path: historical-master
+          persist-credentials: false
       - name: Install dependencies
-        run: sh .github/install-mkl.sh autoconf automake make clang libomp-dev libgsl-dev
-      - name: Build master and regenerate references
         run: |
-          set +u; . /opt/intel/oneapi/setvars.sh; set -u
-          sh tests/generate-reference.sh master "$RUNNER_TEMP/reference"
+          sh .github/install-mkl.sh autoconf automake make libgsl-dev \
+            "clang-21=$LLVM_VERSION" "libomp-21-dev=$LLVM_VERSION" \
+            "intel-oneapi-mkl-core-2026.2=$MKL_VERSION" \
+            "intel-oneapi-mkl-core-devel-2026.2=$MKL_VERSION" \
+            "intel-oneapi-mkl-classic-include-2026.2=$MKL_VERSION"
+      - name: Build master and regenerate references
+        run: sh tests/generate-reference.sh historical-master "$RUNNER_TEMP/reference"
       - name: Compare with committed references
         run: |
-          status=0
-          for ref in tests/reference/*/*.dat; do
-              new="$RUNNER_TEMP/reference/${ref#tests/reference/}"
-              sh tests/compare.sh "$ref" "$new" || status=1
+          committed=tests/reference
+          generated="$RUNNER_TEMP/reference"
+          for dir in "$committed" "$generated"; do
+            grep -Fx "master commit: $MASTER_COMMIT" "$dir/PROVENANCE"
           done
+
+          committed_files="$RUNNER_TEMP/reference-files-committed.txt"
+          generated_files="$RUNNER_TEMP/reference-files-generated.txt"
+          (cd "$committed" && find . -type f -name '*.dat' -print | LC_ALL=C sort) > "$committed_files"
+          (cd "$generated" && find . -type f -name '*.dat' -print | LC_ALL=C sort) > "$generated_files"
+          diff -u "$committed_files" "$generated_files"
+          if [[ ! -s "$committed_files" ]]; then
+            echo "No reference data files found" >&2
+            exit 1
+          fi
+
+          status=0
+          while IFS= read -r file; do
+            sh tests/compare.sh "$committed/$file" "$generated/$file" || status=1
+          done < "$committed_files"
           exit $status
+      - name: Upload reference diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-reference-check
+          retention-days: 7
+          path: |
+            historical-master/config.log
+            ${{ runner.temp }}/reference/PROVENANCE
+            ${{ runner.temp }}/reference-files-*.txt
+
+  required:
+    name: MB-SPEC CI
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    needs: [build, sanitizers, mkl, reference-check]
+    if: ${{ always() }}
+    permissions: {}
+    steps:
+      - name: Check required job results
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          SANITIZERS_RESULT: ${{ needs.sanitizers.result }}
+          MKL_RESULT: ${{ needs.mkl.result }}
+          REFERENCE_RESULT: ${{ needs['reference-check'].result }}
+        run: |
+          printf 'Generic LAPACKE: %s\nSanitizers: %s\nMKL: %s\nHistorical references: %s\n' \
+            "$BUILD_RESULT" "$SANITIZERS_RESULT" "$MKL_RESULT" "$REFERENCE_RESULT"
+          [[ "$BUILD_RESULT" == success && "$SANITIZERS_RESULT" == success &&
+             "$MKL_RESULT" == success && "$REFERENCE_RESULT" == success ]]

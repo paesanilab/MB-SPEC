@@ -13,14 +13,20 @@ Bootstrapping from a Git checkout requires Autoconf 2.70+ and Automake 1.16+.
 The required macros from the GNU Autoconf Archive and pkgconf are bundled in
 [`m4/`](m4/README.md). Release tarballs include the generated `configure` script.
 
-For a generic LAPACKE installation on the compiler's normal search paths:
+For a generic LAPACKE installation on the compiler's normal search paths, run
+these commands from the source directory.
 
 ```bash
-./autogen.sh                 # Git checkouts only
-./configure CXX=c++ CXXFLAGS="-O2"
+autoreconf -fi  # Git checkouts only
+./configure
 make -j4
 make check
 ```
+
+`./configure` detects a C++ compiler and uses Autoconf's default flags, typically
+`-g -O2` with GCC. Set `CXX` to choose a compiler and `CXXFLAGS` to supply your
+own flags. For example, `./configure CXX=g++ CXXFLAGS="-O2"` selects GCC and
+sets optimization level 2.
 
 The default `--with-lapack=generic` uses `<lapacke.h>`. It first tries the
 flags from the `lapacke` pkg-config module, when pkg-config is installed (it is
@@ -28,7 +34,7 @@ optional), then `-llapacke`, then `-llapacke -llapack -lblas`. Supply `LAPACKE_C
 for a custom installation or library combination, for example:
 
 ```bash
-./configure CXX=c++ CXXFLAGS="-O2" \
+./configure \
     LAPACKE_CFLAGS="-I/path/to/lapack/include" \
     LAPACKE_LIBS="-L/path/to/lapack/lib -llapacke -llapack -lblas"
 ```
@@ -43,7 +49,7 @@ Select Intel MKL explicitly with `--with-lapack=mkl`, which uses
 set), a Linux build using the sequential LP64 libraries can be configured as:
 
 ```bash
-./configure --with-lapack=mkl CXX=c++ CXXFLAGS="-O2"
+./configure --with-lapack=mkl
 make -j4
 make check
 ```
@@ -60,7 +66,7 @@ environment sets `LD_LIBRARY_PATH`).
 For other threading layers or layouts, pass the flags explicitly:
 
 ```bash
-./configure --with-lapack=mkl CXX=c++ CXXFLAGS="-O2" \
+./configure --with-lapack=mkl \
     LAPACKE_CFLAGS="-I${MKLROOT}/include" \
     LAPACKE_LIBS="-L${MKLROOT}/lib -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl"
 ```
@@ -94,7 +100,7 @@ options remain removed. LAPACKE is required and cannot be disabled.
 Use `make -jN` to select the number of parallel build jobs. Run `make clean`
 before changing compilers or compilation flags, then rerun `./configure`
 with the new settings and rebuild. Run
-`./autogen.sh` again after editing `configure.ac`, `Makefile.am`, or files in
+`autoreconf -fi` again after editing `configure.ac`, `Makefile.am`, or files in
 `m4/`.
 
 `make install` installs the programs to `$prefix/bin` (default `/usr/local`;

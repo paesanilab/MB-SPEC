@@ -8,7 +8,7 @@ fi
 autoreconf -fi
 
 ./configure CC=icx CXX=icpx \
-    CFLAGS="-g -O0 -fopenmp -Wall -std=c99" \
-    CXXFLAGS="-g -O0 -fopenmp -Wall"
+    CFLAGS="-g -O2 -fopenmp -Wall -std=c99" \
+    CXXFLAGS="-g -O2 -fopenmp -Wall"
 
 make -j4

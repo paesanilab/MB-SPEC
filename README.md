@@ -10,12 +10,12 @@ MKL with its LAPACKE headers and libraries. From the repository root:
 
 ```bash
 autoreconf -fi
-./configure CXX=c++ CC=cc CXXFLAGS="-O2 -fopenmp" CFLAGS="-O2 -fopenmp"
+./configure CC=icx CXX=icpx CFLAGS="-g -O2 -fopenmp -Wall -std=c99" CXXFLAGS="-g -O2 -fopenmp -Wall"
 make -j4
 ```
 
-`compile.sh` is a convenience script for Intel compilers. Executables are
-created in `src/infrared`, `src/raman`, `src/sfg`, and `src/power`.
+`compile.sh` is a convenience script for Intel compilers. 
+Executables are created in `src/infrared`, `src/raman`, `src/sfg`, and `src/power`.
 
 ## Workflows
 

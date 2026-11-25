@@ -64,15 +64,21 @@ run() {
     fi
 }
 
-# Compare (or, in generate mode, save) the named output files.
+# Check or save one output file, with optional relative and absolute tolerances.
+check_file() {
+    name=$1
+    shift
+    if [ -n "${MBSPEC_GENERATE_DIR:-}" ]; then
+        mkdir -p "$MBSPEC_GENERATE_DIR/$workflow"
+        cp "$name" "$MBSPEC_GENERATE_DIR/$workflow/$name"
+    elif ! sh "$srcdir/compare.sh" "$reference/$name" "$name" "$@"; then
+        failures=$((failures + 1))
+    fi
+}
+
 check() {
-    for name in "$@"; do
-        if [ -n "${MBSPEC_GENERATE_DIR:-}" ]; then
-            mkdir -p "$MBSPEC_GENERATE_DIR/$workflow"
-            cp "$name" "$MBSPEC_GENERATE_DIR/$workflow/$name"
-        elif ! sh "$srcdir/compare.sh" "$reference/$name" "$name"; then
-            failures=$((failures + 1))
-        fi
+    for file in "$@"; do
+        check_file "$file"
     done
 }
 

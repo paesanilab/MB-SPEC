@@ -5,5 +5,8 @@
 run dipole.dat   "$(prog ir dipole)"   "$data/water4.xyz" "$data/ir.json"
 run response.dat "$(prog ir response)" dipole.dat         "$data/ir.json"
 run spectrum.dat "$(prog ir spectrum)" response.dat       "$data/ir.json"
-check dipole.dat response.dat spectrum.dat
+check dipole.dat
+# Mean subtraction and autocorrelation propagate rounding from the dipole file.
+check_file response.dat 1e-8 1e-8
+check spectrum.dat
 finish

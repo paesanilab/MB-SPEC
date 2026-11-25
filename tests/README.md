@@ -24,9 +24,11 @@ numerical, analytical, and input-handling cases.
   (not run by `make check`) and use LF line endings, which the readers require.
 - `reference/` contains the saved outputs. `reference/PROVENANCE` records the
   commit, compiler, flags and MKL version used to produce them.
-- `compare.sh`: compares a file with its reference, field by field. Numeric
-  fields may differ by `1e-8` relative, `1e-10` of the column's largest
-  magnitude, or one unit in the last printed digit. Text fields and the
+- `compare.sh` compares a file with its reference, field by field. The default
+  tolerance adds `1e-8` relative, `1e-10` of the column's largest magnitude,
+  and one unit in the last printed digit. The IR response uses `1e-8` of the
+  column's largest magnitude for the absolute term to account for rounding
+  propagated from the printed dipoles. Text fields and the
   file's shape (lines and fields per line) must match exactly. The script
   reports the largest deviation for each file.
 - `common.sh`: helpers shared by the `*.test` scripts. The tests run with

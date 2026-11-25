@@ -53,8 +53,7 @@ jobs:
         if: matrix.cxx != 'g++'
         run: |
           make install
-          test -x ./bin/mbspec-ir-dipole
-          test -f ./share/mb-spec/json_template/ir.json
+          src/unittests/check-historical --installed-prefix "$PWD"
       - name: Distribution check
         if: matrix.cxx == 'g++'
         run: make -j"$(nproc)" distcheck DISTCHECK_CONFIGURE_FLAGS="CXX=g++ --enable-werror"
@@ -70,6 +69,7 @@ jobs:
             src/tools/*.log
             src/unittests/*.log
             src/unittests/.build/runs/**/stderr.log
+            src/unittests/.build/runs/**/stdout.dat
             mb-spec-*/_build/sub/config.log
             mb-spec-*/_build/sub/src/tools/*.log
             mb-spec-*/_build/sub/src/unittests/*.log
@@ -126,6 +126,22 @@ jobs:
         run: sh .github/install-mkl.sh autoconf automake make pkgconf intel-oneapi-mkl-core-devel-2026.2
       - name: Bootstrap
         run: autoreconf -fi
+      - name: Reject an incompatible LAPACKE ABI
+        run: |
+          export LD_LIBRARY_PATH="$MKLROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          test -f "$MKLROOT/lib/libmkl_intel_ilp64.so"
+          probe=$(mktemp -d)
+          cd "$probe"
+          if "$GITHUB_WORKSPACE/configure" CXX=g++ --with-lapack=mkl \
+            LAPACKE_CFLAGS="-I$MKLROOT/include" \
+            LAPACKE_LIBS="-L$MKLROOT/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl" \
+            > probe.log 2>&1; then
+            cat probe.log
+            exit 1
+          fi
+          cat probe.log
+          grep -F 'the LAPACKE ABI check failed' probe.log
+          sed -n '/checking for LP64 mkl LAPACKE/,$p' config.log | grep -F 'program exited with status 1'
       - name: Configure, build, test and install
         run: |
           export PKG_CONFIG_PATH="$MKLROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
@@ -175,6 +191,7 @@ jobs:
             "intel-oneapi-mkl-classic-include-2026.2=$MKL_VERSION"
       - name: Build and check historical master
         run: |
+          export LD_LIBRARY_PATH="$MKLROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           sh src/unittests/build-historical.sh historical-master
           autoreconf -fi
           ./configure --with-lapack=mkl --enable-werror

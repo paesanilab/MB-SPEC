@@ -77,10 +77,11 @@ For other threading layers or layouts, pass the flags explicitly:
 ```
 
 For either implementation, the headers and libraries must agree on
-the LP64 integer interface; ILP64 is unsupported. Configuration checks the
-header and compilation/linkage of all three required LAPACKE routines. It
-does not run numerical tests. `make check` tests inversion, singular-matrix
-failure and symmetric eigenvalues against the selected implementation.
+the LP64 integer interface. Native configuration runs a small numerical probe
+to check the library ABI. Make the selected shared libraries available at
+configure time, for example by initializing your MKL environment. A cross-build
+checks linkage during configuration and requires `make check` on the target
+to verify the runtime ABI. `make check` also tests singular-matrix failure.
 
 Configuration enables C++17 using compiler-specific flags and rejects modes
 older than C++17. To select a newer mode, put its flag in `CXXFLAGS`, for example
@@ -104,7 +105,7 @@ options remain removed. LAPACKE is required and cannot be disabled.
 
 Use `make -jN` to select the number of parallel build jobs. Run `make clean`
 before changing compilers or compilation flags, then rerun `./configure`
-with the new settings and rebuild. Run
+with the new settings, rebuild, and rerun `make install` to update `./bin/`. Run
 `autoreconf -fi` again after editing `configure.ac`, `Makefile.am`, or files in
 `m4/`.
 
@@ -135,6 +136,25 @@ Run `make check` from the top-level build directory. It runs the matrix and
 The trajectory suites check numerical references, analytical cases, input formats,
 threading, and complete workflows against a pinned `master` baseline.
 
+## Quickstart
+
+Run these commands after `make install` to calculate an IR spectrum from the
+bundled eight-frame water trajectory. Set `source_dir` to the source root when
+building in a separate directory.
+
+```bash
+source_dir=.
+example="$source_dir/src/unittests/historical/inputs"
+OMP_NUM_THREADS=1 ./bin/mbspec-ir-dipole "$example/water4.xyz" "$example/ir.json" > dipole.dat
+./bin/mbspec-ir-response dipole.dat "$example/ir.json" > response.dat
+./bin/mbspec-ir-spectrum response.dat "$example/ir.json" > spectrum.dat
+```
+
+`dipole.dat` contains eight rows with time in ps and three dipole components in
+Debye. `response.dat` contains six rows with lag in ps and the autocorrelation
+in (C·m)². `spectrum.dat` contains six rows with wavenumber and IR intensity,
+both in cm⁻¹.
+
 ## Workflows
 
 Run the commands below from the top-level build directory after `make install`.
@@ -142,6 +162,12 @@ Copy the corresponding JSON file from `./share/mb-spec/json_template/` and
 adjust it for your trajectory. To run the programs from another directory, add
 the installed `bin/` directory to your `PATH`. Use `OMP_NUM_THREADS` to set
 parallelism for stages that support OpenMP.
+
+Use `--help` on any executable to see its arguments. A workflow configuration
+must contain the section for the executable you are running. Use the matching
+template for recognized keys. A single file can contain several workflow
+sections. IR, Raman, and Power spectrum inputs require two finite numeric
+columns and an evenly spaced time grid.
 
 ## IR
 

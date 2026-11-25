@@ -79,13 +79,17 @@ void compare(const fs::path& actual_file, const fs::path& reference_file, size_t
 struct HistoricalSuite {
     Suite suite;
     fs::path references;
+    fs::path sfg_data;
     Json config;
     std::set<fs::path>& checked_files;
 
     HistoricalSuite(const std::string& workflow, const fs::path& legacy_root,
-                    std::set<fs::path>& checked)
-        : suite("historical-" + workflow, "", legacy_root),
+                    const fs::path& installed_prefix, std::set<fs::path>& checked)
+        : suite("historical-" + workflow, "", legacy_root,
+                installed_prefix.empty() ? fs::path{} : installed_prefix / "bin"),
           references(historical / "references" / workflow),
+          sfg_data(installed_prefix.empty() ? root.parent_path() / "sfg" :
+                   installed_prefix / "share/mb-spec/sfg"),
           config(Json::parse(contents(historical / "inputs" / (workflow + ".json")))),
           checked_files(checked) {}
 
@@ -141,7 +145,7 @@ void check_sfg(HistoricalSuite& test)
     for (const std::string key : {"water_refractive_index_n_file", "water_refractive_index_k_file"}) {
         const fs::path table = optical.at(key).get<std::string>();
         fs::create_directories((directory / table).parent_path());
-        fs::copy_file(root / "../sfg" / table, directory / table);
+        fs::copy_file(test.sfg_data / table, directory / table);
     }
     test.suite.run("sfg/fresnel", {}, optical, "", 1, "", directory);
     for (const std::string polarization : {"ssp", "pss", "sps", "ppp"}) {
@@ -161,20 +165,33 @@ void check_power(HistoricalSuite& test)
 
 int main(int argc, char** argv)
 {
-    if (argc > 2) {
-        std::cerr << "Usage: " << argv[0] << " [legacy-src-directory]\n";
+    const bool installed = argc == 3 && std::string(argv[1]) == "--installed-prefix";
+    if ((!installed && argc > 2) || (argc == 2 && std::string(argv[1]) == "--installed-prefix")) {
+        std::cerr << "Usage: " << argv[0] << " [legacy-src-directory | --installed-prefix DIR]\n";
         return EXIT_FAILURE;
     }
 
     try {
         const auto legacy_root = argc == 2 ? fs::absolute(argv[1]) : fs::path{};
+        const auto installed_prefix = installed ? fs::absolute(argv[2]) : fs::path{};
+        if (installed) {
+            const auto data = installed_prefix / "share/mb-spec";
+            const auto source = root.parent_path().parent_path();
+            for (const auto* name : {"ir.json", "raman.json", "sfg.json", "power.json"}) {
+                const auto path = fs::path("json_template") / name;
+                require(contents(data / path) == contents(source / path),
+                        "installed template differs: " + path.string());
+            }
+            require(contents(data / "sfg/fresnel.json") == contents(source / "src/sfg/fresnel.json"),
+                    "installed Fresnel configuration differs");
+        }
         const std::pair<const char*, void (*)(HistoricalSuite&)> cases[] = {
             {"ir", check_ir}, {"raman", check_raman}, {"sfg", check_sfg}, {"power", check_power},
         };
         int status = 0;
         std::set<fs::path> checked;
         for (const auto& workflow : cases) {
-            HistoricalSuite test(workflow.first, legacy_root, checked);
+            HistoricalSuite test(workflow.first, legacy_root, installed_prefix, checked);
             test.suite.check("outputs match the pinned master reference", [&] { workflow.second(test); });
             status |= test.suite.finish();
         }

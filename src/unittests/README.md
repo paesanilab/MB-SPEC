@@ -65,6 +65,10 @@ make -C src/unittests check-historical
 src/unittests/check-historical /tmp/mbspec-master/src
 ```
 
+After installing with the default prefix, run
+`src/unittests/check-historical --installed-prefix "$PWD"` from the build
+directory to test the installed executables, templates, and Fresnel tables.
+
 Use Clang for the historical build. The original C++11 LAMMPS parser depends
 on operand evaluation order when assigning column indices. Clang evaluates
 them in the order used to generate the references. The current code's C++17

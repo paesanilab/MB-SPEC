@@ -56,6 +56,9 @@ make check
 make install
 ```
 
+To build with the Intel oneAPI C++ compiler, initialize the oneAPI environment
+and run `./configure CXX=icpx --with-lapack=mkl` before the same `make` steps.
+
 Without `LAPACKE_LIBS`, an MKL build tries, in order:
 
 1. the compiler's own MKL support (for example `CXXFLAGS="-O2 -qmkl=sequential"`

@@ -82,6 +82,29 @@ AS_IF([test "${LAPACKE_LIBS+set}" = set], [lapacke_candidates=user],
     [test "$with_lapack" = mkl], [lapacke_candidates="user pkgconfig"],
     [lapacke_candidates="pkgconfig lapacke lapacke_with_blas"])
 lapacke_found=no
+m4_define([mbspec_lapacke_probe], [AC_LANG_PROGRAM([[
+#ifdef USE_MKL
+#include <mkl_lapacke.h>
+#else
+#include <lapacke.h>
+#endif
+]], [[
+    static_assert(sizeof(lapack_int) == 4 && sizeof(lapack_int) == sizeof(int),
+                  "LP64 LAPACKE with 32-bit integers is required");
+    double a = 2.0;
+    // Keep an accidental 64-bit pivot write inside the array and detect it.
+    constexpr lapack_int guard = 123456789;
+    alignas(8) lapack_int pivots[] = {0, guard};
+    if (LAPACKE_dgetrf(LAPACK_ROW_MAJOR, 1, 1, &a, 1, pivots) != 0 ||
+        pivots[0] != 1 || pivots[1] != guard)
+        return 1;
+    if (LAPACKE_dgetri(LAPACK_ROW_MAJOR, 1, &a, 1, pivots) != 0 || a != 0.5)
+        return 1;
+    double eigenvalue = 0.0;
+    a = 2.0;
+    return LAPACKE_dsyev(LAPACK_ROW_MAJOR, 'V', 'U', 1, &a, 1, &eigenvalue) != 0 ||
+           eigenvalue != 2.0;
+]])])
 for lapacke_candidate in $lapacke_candidates; do
     lapacke_try_CFLAGS=$LAPACKE_CFLAGS
     AS_IF([test "$lapacke_candidate" = pkgconfig],
@@ -105,40 +128,25 @@ for lapacke_candidate in $lapacke_candidates; do
     CXXFLAGS="$OPENMP_CXXFLAGS $lapacke_try_CFLAGS $saved_CXXFLAGS"
     LIBS="$lapacke_try_LIBS $saved_LIBS"
     AC_MSG_CHECKING([for LP64 $with_lapack LAPACKE with libraries '$lapacke_try_LIBS'])
-    AC_LINK_IFELSE(
-    [AC_LANG_PROGRAM([[
-#ifdef USE_MKL
-#include <mkl_lapacke.h>
-#else
-#include <lapacke.h>
-#endif
-    ]], [[
-        double a[1] = {1.0};
-        double eigenvalues[1];
-        static_assert(sizeof(lapack_int) == 4 && sizeof(lapack_int) == sizeof(int),
-                      "LP64 LAPACKE with 32-bit integers is required");
-        lapack_int pivots[1];
-        lapack_int info = LAPACKE_dgetrf(LAPACK_ROW_MAJOR, 1, 1, a, 1, pivots);
-        info += LAPACKE_dgetri(LAPACK_ROW_MAJOR, 1, a, 1, pivots);
-        info += LAPACKE_dsyev(LAPACK_ROW_MAJOR, 'V', 'U', 1, a, 1, eigenvalues);
-        return info;
-    ]])],
-    [AC_MSG_RESULT([yes])
-     lapacke_found=yes
-     LAPACKE_CFLAGS=$lapacke_try_CFLAGS
-     LAPACKE_LIBS=$lapacke_try_LIBS
-     break],
-    [AC_MSG_RESULT([no])])
+    AC_RUN_IFELSE([mbspec_lapacke_probe], [lapacke_found=yes], [lapacke_found=no],
+        [AC_LINK_IFELSE([mbspec_lapacke_probe], [lapacke_found=yes], [lapacke_found=no])])
+    AC_MSG_RESULT([$lapacke_found])
+    AS_IF([test "$lapacke_found" = yes],
+        [LAPACKE_CFLAGS=$lapacke_try_CFLAGS
+         LAPACKE_LIBS=$lapacke_try_LIBS
+         break])
 done
 CXXFLAGS=$saved_CXXFLAGS
 LIBS=$saved_LIBS
 AS_IF([test "$lapacke_found" != yes],
-    [AC_MSG_ERROR([LP64 $with_lapack LAPACKE is required, but its header or the
-LAPACKE_dgetrf, LAPACKE_dgetri, and LAPACKE_dsyev routines could not be compiled
-and linked. Set LAPACKE_CFLAGS and LAPACKE_LIBS for a matching LP64 installation.
+    [AC_MSG_ERROR([LP64 $with_lapack LAPACKE is required, but the LAPACKE ABI check failed.
+Set LAPACKE_CFLAGS and LAPACKE_LIBS for matching 32-bit headers and libraries.
 Generic builds require lapacke.h; --with-lapack=mkl requires mkl_lapacke.h
-(initialize your MKL environment so MKLROOT is set, or pass the flags).
+(initialize your MKL environment so MKLROOT is set, or pass the flags). Make
+the selected shared libraries available on the runtime library search path.
 Explicit LAPACKE_LIBS are used without fallback. See config.log for details.])])
+AS_IF([test "$cross_compiling" = yes],
+    [AC_MSG_WARN([Cross-compiling: LAPACKE passed the link check. Run make check on the target to verify the runtime ABI.])])
 
 AC_CONFIG_FILES([
   Makefile

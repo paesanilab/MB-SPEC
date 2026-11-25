@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <array>
 #include <cmath>
 #include <cstdlib>
@@ -5,10 +7,26 @@
 #include <stdexcept>
 
 #include "mat_tools.h"
+#ifdef USE_MKL
+#include <mkl_lapacke.h>
+#else
+#include <lapacke.h>
+#endif
 
 namespace {
 
 constexpr double tolerance = 1e-12;
+
+void test_lapacke_abi()
+{
+    // Cross-builds reach this check before doing any full matrix operations.
+    constexpr lapack_int guard = 123456789;
+    alignas(8) lapack_int pivots[] = {0, guard};
+    double matrix = 2.0;
+    if (LAPACKE_dgetrf(LAPACK_ROW_MAJOR, 1, 1, &matrix, 1, pivots) != 0 ||
+        pivots[0] != 1 || pivots[1] != guard)
+        throw std::runtime_error("LAPACKE ABI check failed: expected a 32-bit pivot");
+}
 
 void require_close(double actual, double expected, const char* description)
 {
@@ -78,6 +96,7 @@ void test_eigenvalues()
 int main()
 {
     try {
+        test_lapacke_abi();
         test_inversion();
         test_singular_matrix();
         test_eigenvalues();

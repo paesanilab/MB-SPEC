@@ -338,6 +338,7 @@ squared amplitudes for SSP, PSS, SPS, and PPP spectra.
 Make three copies of your SFG configuration named `sfg-xxz.json`,
 `sfg-zzz.json`, and `sfg-xzx.json`. In each copy, set `SFG.ijk` to the
 corresponding component and use the same wavenumber grid for all three spectra.
+The Fresnel program reports the file and row if a component's grid differs.
 Copy `fresnel.json` and `fresnel_factors/` from `src/sfg/` or the installed
 `$prefix/share/mb-spec/sfg/` directory into your working directory. The program
 resolves paths in `fresnel.json` from that working directory.

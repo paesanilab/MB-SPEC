@@ -9,6 +9,8 @@
 #include <cstdlib>
 #include <sstream>
 
+#include "cli.h"
+#include "numeric_input.h"
 #include "system.h"
 #include "constants.h"
 #include "spectral_smoothing.h"
@@ -25,21 +27,11 @@ int main(int argc, char** argv)
     // Command-line input and configuration
     // -------------------------------------------------------------------------
 
-    if (argc != 3) {
-        std::cerr << "usage: " << argv[0]
-                  << " <response.dat> <mb-spec.json>" << std::endl;
-        return EXIT_FAILURE;
-    }
+    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<response.dat> <mb-spec.json>"))
+        return *status;
 
     System sys;
     sys.SetUpFromJson("POWER", argv[2]);
-
-    std::ifstream infile(argv[1]);
-    if (!infile) {
-        std::cerr << "Error: cannot open file " << argv[1] << "\n";
-        return EXIT_FAILURE;
-    }
-
 
     // -------------------------------------------------------------------------
     // POWER spectrum settings and validation
@@ -83,38 +75,20 @@ int main(int argc, char** argv)
     // -------------------------------------------------------------------------
     // Response input and correlation-time selection
     // -------------------------------------------------------------------------
-    std::vector<double> time;
-    std::vector<double> corr;
-
-    size_t Ndata = 0;
-
-    double t(0);
-    double c(0);
-
-    while (infile >> t >> c) {
-        if (t >= max_int)
-            break;
-        ++Ndata;
-        time.push_back(t);
-        corr.push_back(c);
+    mbspec::ResponseTable response;
+    try {
+        response = mbspec::read_response(argv[1], max_int, 6);
+    } catch (const std::exception& error) {
+        std::cerr << error.what() << '\n';
+        return EXIT_FAILURE;
     }
-
-    infile.close();
-
-    std::cerr << "Ndata : " << Ndata << std::endl;
-
-
+    auto& corr = response.values;
+    const size_t Ndata = corr.size();
     if (Ndata < 2) {
-        std::cerr << "response file must contain at least two points below POWER.int_max"
-                  << std::endl;
+        std::cerr << "response file '" << argv[1] << "' must contain at least 2 time points below POWER.int_max\n";
         return EXIT_FAILURE;
     }
-    const double dt_ps = time[1] - time[0];
-    if (dt_ps <= 0.0) {
-        std::cerr << "response time values must be strictly increasing"
-                  << std::endl;
-        return EXIT_FAILURE;
-    }
+    const double dt_ps = response.interval;
     const double available_time_ps = Ndata*dt_ps;
     if (transform_time_ps > available_time_ps + 1.0e-10*dt_ps) {
         std::cerr << "POWER.spectrum_transform_time_ps exceeds the available "

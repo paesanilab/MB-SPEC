@@ -7,6 +7,7 @@
 #include <numeric>
 #include <sstream>
 
+#include "cli.h"
 #include "system.h"
 
 namespace {
@@ -161,10 +162,8 @@ int main(int argc, char **argv)
     // Program setup and response output
     //----------------------------------------------------------------------------//
 
-    if (argc != 3) {
-        std::cerr << "usage: " << argv[0] << " <dipole_file> <mb-spec.json>" << std::endl;
-        return EXIT_FAILURE;
-    }
+    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<dipole_file> <mb-spec.json>"))
+        return *status;
 
     System sys;
     sys.SetUpFromJson("INFRARED", argv[argc - 1]);

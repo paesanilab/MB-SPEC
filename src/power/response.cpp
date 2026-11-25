@@ -10,6 +10,7 @@
 
 #include <omp.h>
 
+#include "cli.h"
 #include "system.h"
 #include "read-lammpstrj.h"
 
@@ -171,11 +172,8 @@ int main(int argc, char** argv)
     // Command-line input and POWER configuration
     // -------------------------------------------------------------------------
 
-    if (argc != 3) {
-        std::cerr << "usage: " << argv[0]
-                  << " <velocity_trajectory> <mb-spec.json>" << std::endl;
-        return EXIT_FAILURE;
-    }
+    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<velocity_trajectory> <mb-spec.json>"))
+        return *status;
 
     System sys;
     sys.SetUpFromJson("POWER", argv[2]);

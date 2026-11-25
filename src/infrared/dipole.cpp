@@ -1,4 +1,5 @@
 #ifdef HAVE_CONFIG_H
+#include "cli.h"
 #include "config.h"
 #endif // HAVE_CONFIG_H
 
@@ -183,10 +184,8 @@ int main(int argc, char** argv)
   // Program setup and JSON input
   //----------------------------------------------------------------------------//
 
-  if (argc < 3) {
-    std::cerr << "usage: " << argv[0] << " <file_name> <mb-spec.json>" << std::endl;
-    return EXIT_FAILURE;
-  }
+  if (const auto status = mbspec::check_arguments(argc, argv, 3, "<trajectory> <mb-spec.json>"))
+      return *status;
 
   System sys;
   sys.SetUpFromJson("INFRARED", argv[argc - 1]);

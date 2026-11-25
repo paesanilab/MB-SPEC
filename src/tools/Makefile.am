@@ -14,12 +14,14 @@ test_poly2b5_LDADD = libpoly.a
 
 EXTRA_DIST = \
     README.md \
+    cli.h \
     json/json.h \
     macros.h \
     struct-lammpstrj-frame.h \
     struct-sfg-pols.h
 
 libtools_a_SOURCES = constants.h \
+    numeric_input.cpp numeric_input.h \
     spectral_smoothing.h \
     orient.cpp orient.h pbc-tools.cpp pbc-tools.h \
     mat_tools.cpp mat_tools.h \

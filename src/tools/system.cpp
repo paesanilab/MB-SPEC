@@ -1,18 +1,24 @@
 #include "system.h"
 
 #include <iomanip>
+#include <initializer_list>
 #include <cstdlib>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
+#include <string_view>
 
 #define EXIT_FAILURE 1
 
 namespace {
 
 template <typename T>
-bool ReadJsonOption(const nlohmann::json& options, const std::string& section,
-                    const char* key, T& destination) {
+bool ReadJsonOption(nlohmann::json& options, const std::string& section,
+                    const char* key, T& destination,
+                    std::initializer_list<std::string_view> workflows = {}) {
+    if (workflows.size() != 0 && std::find(workflows.begin(), workflows.end(), section) == workflows.end())
+        return false;
+
     const auto found = options.find(key);
     if (found == options.end())
         return false;
@@ -49,6 +55,7 @@ bool ReadJsonOption(const nlohmann::json& options, const std::string& section,
                                  " (received " + value.type_name() + ")");
     }
     destination = value.get<T>();
+    options.erase(found);
     return true;
 }
 
@@ -116,7 +123,9 @@ void System::SetUpFromJson(nlohmann::json j, std::string func) {
 
     if (!j.is_object())
         throw std::runtime_error("JSON configuration must be an object");
-    const auto options = j.count(func) ? j.at(func) : nlohmann::json::object();
+    if (!j.contains(func))
+        throw std::runtime_error("missing JSON workflow section " + func);
+    auto& options = j.at(func);
     if (!options.is_object())
         throw std::runtime_error(func + " must be a JSON object");
 
@@ -128,26 +137,26 @@ void System::SetUpFromJson(nlohmann::json j, std::string func) {
 
     mbx_j_["MB-SPEC"]["dump_frequency"] = dump_frequency_;
 
-    ReadJsonOption(options, func, "DMS", dms_);
+    ReadJsonOption(options, func, "DMS", dms_, {"INFRARED"});
 
     mbx_j_["MB-SPEC"]["DMS"] = dms_;
 
-    ReadJsonOption(options, func, "subtract_mean_dipole", subtract_mean_dipole_);
+    ReadJsonOption(options, func, "subtract_mean_dipole", subtract_mean_dipole_, {"INFRARED"});
 
     mbx_j_["MB-SPEC"]["subtract_mean_dipole"] = subtract_mean_dipole_;
 
     ReadJsonOption(options, func, "subtract_mean_polarizability",
-                   subtract_mean_polarizability_);
+                   subtract_mean_polarizability_, {"RAMAN"});
 
     mbx_j_["MB-SPEC"]["subtract_mean_polarizability"] =
         subtract_mean_polarizability_;
 
-    ReadJsonOption(options, func, "write_molecular_properties", write_molecular_properties_);
+    ReadJsonOption(options, func, "write_molecular_properties", write_molecular_properties_, {"INFRARED", "RAMAN"});
 
     mbx_j_["MB-SPEC"]["write_molecular_properties"] =
         write_molecular_properties_;
 
-    ReadJsonOption(options, func, "subtract_mean_velocity", subtract_mean_velocity_);
+    ReadJsonOption(options, func, "subtract_mean_velocity", subtract_mean_velocity_, {"POWER"});
 
     mbx_j_["MB-SPEC"]["subtract_mean_velocity"] = subtract_mean_velocity_;
 
@@ -163,7 +172,7 @@ void System::SetUpFromJson(nlohmann::json j, std::string func) {
 
     mbx_j_["MB-SPEC"]["int_max"] = int_max_;
 
-    ReadJsonOption(options, func, "temperature", temperature_);
+    ReadJsonOption(options, func, "temperature", temperature_, {"INFRARED", "RAMAN", "SFG"});
 
     mbx_j_["MB-SPEC"]["temperature"] = temperature_;
 
@@ -180,18 +189,18 @@ void System::SetUpFromJson(nlohmann::json j, std::string func) {
     }
 
     ReadJsonOption(options, func, "spectrum_max_wavenumber_cm1",
-                   spectrum_max_wavenumber_cm1_);
+                   spectrum_max_wavenumber_cm1_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["spectrum_max_wavenumber_cm1"] =
         spectrum_max_wavenumber_cm1_;
 
-    ReadJsonOption(options, func, "spectrum_num_wavenumbers", spectrum_num_wavenumbers_);
+    ReadJsonOption(options, func, "spectrum_num_wavenumbers", spectrum_num_wavenumbers_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["spectrum_num_wavenumbers"] =
         spectrum_num_wavenumbers_;
 
     if (ReadJsonOption(options, func, "subtract_initial_response",
-                       subtract_initial_response_)) {
+                       subtract_initial_response_, {"SFG"})) {
         has_subtract_initial_response_ = true;
     }
 
@@ -210,83 +219,85 @@ void System::SetUpFromJson(nlohmann::json j, std::string func) {
             spectrum_transform_time_ps_;
     }
 
-    ReadJsonOption(options, func, "cutoff_1", cutoff1_);
+    ReadJsonOption(options, func, "cutoff_1", cutoff1_, {"INFRARED", "RAMAN", "SFG"});
 
     mbx_j_["MB-SPEC"]["cutoff_1"] = cutoff1_;
 
-    ReadJsonOption(options, func, "cutoff_2", cutoff2_);
+    ReadJsonOption(options, func, "cutoff_2", cutoff2_, {"INFRARED", "RAMAN", "SFG"});
 
     mbx_j_["MB-SPEC"]["cutoff_2"] = cutoff2_;
 
-    ReadJsonOption(options, func, "ijk", ijk_);
+    ReadJsonOption(options, func, "ijk", ijk_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["ijk"] = ijk_;
 
-    ReadJsonOption(options, func, "raman_response", raman_response_);
+    ReadJsonOption(options, func, "raman_response", raman_response_, {"RAMAN"});
 
     mbx_j_["MB-SPEC"]["raman_response"] = raman_response_;
 
-    ReadJsonOption(options, func, "bose_einstein_correction", bose_einstein_correction_);
+    ReadJsonOption(options, func, "bose_einstein_correction", bose_einstein_correction_, {"RAMAN"});
 
     mbx_j_["MB-SPEC"]["bose_einstein_correction"] = bose_einstein_correction_;
 
-    ReadJsonOption(options, func, "zc1", zc1_);
+    ReadJsonOption(options, func, "zc1", zc1_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["zc1"] = zc1_;
 
-    ReadJsonOption(options, func, "zc2", zc2_);
+    ReadJsonOption(options, func, "zc2", zc2_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["zc2"] = zc2_;
 
-    ReadJsonOption(options, func, "cross_correlation_cutoff", cross_correlation_cutoff_);
+    ReadJsonOption(options, func, "cross_correlation_cutoff", cross_correlation_cutoff_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["cross_correlation_cutoff"] =
         cross_correlation_cutoff_;
 
     ReadJsonOption(options, func, "cross_correlation_sampling_stride",
-                   cross_correlation_sampling_stride_);
+                   cross_correlation_sampling_stride_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["cross_correlation_sampling_stride"] =
         cross_correlation_sampling_stride_;
 
-    ReadJsonOption(options, func, "include_autocorrelation", include_autocorrelation_);
+    ReadJsonOption(options, func, "include_autocorrelation", include_autocorrelation_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["include_autocorrelation"] =
         include_autocorrelation_;
 
-    ReadJsonOption(options, func, "include_cross_correlation", include_cross_correlation_);
+    ReadJsonOption(options, func, "include_cross_correlation", include_cross_correlation_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["include_cross_correlation"] =
         include_cross_correlation_;
 
-    ReadJsonOption(options, func, "center_slab", center_slab_);
+    ReadJsonOption(options, func, "center_slab", center_slab_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["center_slab"] = center_slab_;
 
-    ReadJsonOption(options, func, "shift_slab_by_half_cell", shift_slab_by_half_cell_);
+    ReadJsonOption(options, func, "shift_slab_by_half_cell", shift_slab_by_half_cell_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["shift_slab_by_half_cell"] =
         shift_slab_by_half_cell_;
 
-    ReadJsonOption(options, func, "time_dependent_switch", time_dependent_switch_);
+    ReadJsonOption(options, func, "time_dependent_switch", time_dependent_switch_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["time_dependent_switch"] =
         time_dependent_switch_;
 
-    ReadJsonOption(options, func, "use_ps_dipole", use_ps_dipole_);
+    ReadJsonOption(options, func, "use_ps_dipole", use_ps_dipole_, {"SFG"});
 
     mbx_j_["MB-SPEC"]["use_ps_dipole"] = use_ps_dipole_;
 
-    ReadJsonOption(options, func, "dipole_mb", dipole_mb_);
+    ReadJsonOption(options, func, "dipole_mb", dipole_mb_, {"INFRARED", "SFG"});
     mbx_j_["MB-SPEC"]["dipole_mb"] = dipole_mb_;
 
-    ReadJsonOption(options, func, "polarizability_mb", polarizability_mb_);
+    ReadJsonOption(options, func, "polarizability_mb", polarizability_mb_, {"RAMAN", "SFG"});
     mbx_j_["MB-SPEC"]["polarizability_mb"] = polarizability_mb_;
 
-    ReadJsonOption(options, func, "surface", surface_);
+    ReadJsonOption(options, func, "surface", surface_, {"SFG"});
     mbx_j_["MB-SPEC"]["surface"] = surface_;
 
     ReadJsonOption(options, func, "box", box_);
+    if (!options.empty())
+        throw std::runtime_error("unknown option " + func + "." + options.begin().key());
 
     // if (box_.size() == 9) {
     //     box_maxmin_ = BoxVectorToMaxMin(box_, imcon_);
@@ -307,7 +318,7 @@ void System::SetUpFromJson(std::string json_text, std::string func) {
 
 void System::SetUpFromJson(std::string func, char *json_file) {
     try {
-        nlohmann::json j = nlohmann::json::object();
+        nlohmann::json j = {{func, nlohmann::json::object()}};
         if (json_file != nullptr) {
             std::ifstream ifjson(json_file);
             if (!ifjson)

@@ -4,7 +4,7 @@ AM_CPPFLAGS += -DUNITTEST_DIR='"$(abs_srcdir)"' \
                -DUNITTEST_BUILDDIR='"$(abs_builddir)"' \
                -DUNITTEST_BINDIR='"$(abs_top_builddir)/src"'
 
-check_PROGRAMS = unittest-ir unittest-raman unittest-power unittest-sfg check-historical
+check_PROGRAMS = unittest-ir unittest-raman unittest-power unittest-sfg check-historical check-inputs
 TESTS = $(check_PROGRAMS)
 AM_TESTS_ENVIRONMENT = MB_SPEC_EXTENDED=1; export MB_SPEC_EXTENDED;
 
@@ -15,6 +15,8 @@ unittest_power_SOURCES = unittest-power.cpp
 unittest_sfg_SOURCES = unittest-sfg.cpp
 check_historical_SOURCES = check-historical.cpp
 check_historical_LDADD =
+check_inputs_SOURCES = check-inputs.cpp
+check_inputs_LDADD =
 noinst_HEADERS = test_support.h json_options.h
 
 EXTRA_DIST = README.md generate_references.py reference_cases.py \

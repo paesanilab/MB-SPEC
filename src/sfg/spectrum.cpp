@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <numeric>
 
+#include "cli.h"
 #include "system.h"
 #include "constants.h"
 #include "spectral_smoothing.h"
@@ -25,11 +26,8 @@ int main(int argc, char** argv)
     // Program setup and JSON configuration
     //----------------------------------------------------------------------------//
 
-    if (argc != 3) {
-        std::cerr << "usage: " << argv[0]
-                  << " <response.dat> <mb-spec.json>" << std::endl;
-        return EXIT_FAILURE;
-    }
+    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<response.dat> <mb-spec.json>"))
+        return *status;
 
     System sys;
     sys.SetUpFromJson("SFG", argv[2]);

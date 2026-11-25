@@ -3,6 +3,7 @@
 //  Options for polarizations combinations are: zzz, zxx, xzx, and xxz. //
 //////////////////////////////////////////////////////////////////////////
 #ifdef HAVE_CONFIG_H
+#include "cli.h"
 #include "config.h"
 #endif // HAVE_CONFIG_H
 
@@ -159,11 +160,8 @@ int main(int argc, char** argv)
     // Program setup and JSON configuration
     //----------------------------------------------------------------------------//
 
-    if (argc != 3) {
-        std::cerr << "usage: " << argv[0]
-                  << " <trajectory.lammpstrj> <mb-spec.json>" << std::endl;
-        return EXIT_FAILURE;
-    }
+    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<trajectory.lammpstrj> <mb-spec.json>"))
+        return *status;
 
     System sys;
     sys.SetUpFromJson("SFG", argv[argc - 1]);

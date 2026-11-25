@@ -8,6 +8,8 @@
 #include <cassert>
 #include <cstdlib>
 #include <sstream>
+#include "cli.h"
+#include "numeric_input.h"
 #include "system.h"
 #include "constants.h"
 #include "spectral_smoothing.h"
@@ -35,21 +37,11 @@ int main(int argc, char** argv)
     // Program setup and JSON configuration
     //----------------------------------------------------------------------------//
 
-    if (argc != 3) {
-        std::cerr << "usage: " << argv[0]
-                  << " <response.dat> <mb-spec.json>" << std::endl;
-        return EXIT_FAILURE;
-    }
+    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<response.dat> <mb-spec.json>"))
+        return *status;
 
     System sys;
     sys.SetUpFromJson("RAMAN", argv[2]);
-
-    std::ifstream infile(argv[1]);
-    if (!infile) {
-        std::cerr << "Error: cannot open file " << argv[1] << "\n";
-        return EXIT_FAILURE;
-    }
-
 
     double T = sys.GetTemperature();
     double volume = sys.GetBoxVolume();
@@ -103,39 +95,20 @@ int main(int argc, char** argv)
     // Response-function input and optional time cutoff
     //----------------------------------------------------------------------------//
 
-    std::vector<double> time;
-    std::vector<double> corr;
-
-    double t(0);
-    double correlation_value(0);
-
-    while (infile >> t >> correlation_value) {
-        if (t >= max_int)
-            break;
-        time.push_back(t);
-        corr.push_back(correlation_value);
+    mbspec::ResponseTable response;
+    try {
+        response = mbspec::read_response(argv[1], max_int, 9);
+    } catch (const std::exception& error) {
+        std::cerr << error.what() << '\n';
+        return EXIT_FAILURE;
     }
-
-	infile.close();
-
-    const size_t n_response = time.size();
+    auto& corr = response.values;
+    const size_t n_response = corr.size();
     if (n_response < 4) {
-        std::cerr << "response file must contain at least four time points" << std::endl;
+        std::cerr << "response file '" << argv[1] << "' must contain at least 4 time points below RAMAN.int_max\n";
         return EXIT_FAILURE;
     }
-
-    const double dt = time[1] - time[0]; // ps
-    if (dt <= 0.0) {
-        std::cerr << "response time values must be strictly increasing" << std::endl;
-        return EXIT_FAILURE;
-    }
-    for (size_t i = 2; i < n_response; ++i) {
-        if (time[i] <= time[i - 1]) {
-            std::cerr << "response time values must be strictly increasing" << std::endl;
-            return EXIT_FAILURE;
-        }
-    }
-
+    const double dt = response.interval;
     const double available_time_ps = n_response*dt;
     if (transform_time_ps > available_time_ps + 1.0e-10*dt) {
         std::cerr << "RAMAN.spectrum_transform_time_ps exceeds the available "

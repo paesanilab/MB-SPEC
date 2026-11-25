@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <sstream>
 
+#include "cli.h"
 #include "system.h"
 
 namespace {
@@ -193,10 +194,8 @@ int main(int argc, char **argv)
     // Program setup and JSON configuration
     //----------------------------------------------------------------------------//
 
-    if (argc != 3) {
-        std::cerr << "usage: " << argv[0] << " <polarizability_file> <mb-spec.json>" << std::endl;
-        return EXIT_FAILURE;
-    }
+    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<polarizability_file> <mb-spec.json>"))
+        return *status;
 
     System sys;
     sys.SetUpFromJson("RAMAN", argv[argc - 1]);

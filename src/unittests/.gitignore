@@ -9,5 +9,6 @@ unittest-raman
 unittest-power
 unittest-sfg
 check-historical
+check-inputs
 *.log
 *.trs

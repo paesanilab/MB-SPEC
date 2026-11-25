@@ -21,6 +21,7 @@ autoreconf -fi  # Git checkouts only
 ./configure
 make -j4
 make check
+make install
 ```
 
 `./configure` detects a C++ compiler and uses Autoconf's default flags, typically
@@ -52,6 +53,7 @@ set), a Linux build using the sequential LP64 libraries can be configured as:
 ./configure --with-lapack=mkl
 make -j4
 make check
+make install
 ```
 
 Without `LAPACKE_LIBS`, an MKL build tries, in order:
@@ -103,9 +105,11 @@ with the new settings and rebuild. Run
 `autoreconf -fi` again after editing `configure.ac`, `Makefile.am`, or files in
 `m4/`.
 
-`make install` installs the programs to `$prefix/bin` (default `/usr/local`;
-choose another with `./configure --prefix=DIR`). Each is named
-`mbspec-<workflow>-<stage>`:
+By default, `make install` puts the programs in `./bin/` and their data in
+`./share/mb-spec/` relative to the directory where you ran `configure`.
+Use `./configure --prefix=/absolute/path` to install into another directory.
+Run `make uninstall` from the configured build directory to remove the installed files.
+Each program is named `mbspec-<workflow>-<stage>`.
 
 | Workflow | Programs |
 |----------|----------|
@@ -124,24 +128,24 @@ the water refractive-index tables are installed to `$prefix/share/mb-spec/sfg/`.
 ## Testing
 
 Run `make check` from the top-level build directory. It runs the matrix and
-2B polynomial unit tests, the [small end-to-end workflow tests](tests/README.md)
-against a pinned pre-modernization `master` commit, and the
-[trajectory regression suites](src/unittests/README.md) for numerical,
-analytical, input-format, and threading checks.
+2B polynomial unit tests and the [trajectory regression suites](src/unittests/README.md).
+The trajectory suites check numerical references, analytical cases, input formats,
+threading, and complete workflows against a pinned `master` baseline.
 
 ## Workflows
 
-The commands below use the installed programs on your `PATH`. Copy the
-corresponding JSON file from [json_template/](json_template/) and adjust it for
-your trajectory. Use `OMP_NUM_THREADS` to set parallelism for stages that support
-OpenMP.
+Run the commands below from the top-level build directory after `make install`.
+Copy the corresponding JSON file from `./share/mb-spec/json_template/` and
+adjust it for your trajectory. To run the programs from another directory, add
+the installed `bin/` directory to your `PATH`. Use `OMP_NUM_THREADS` to set
+parallelism for stages that support OpenMP.
 
 ## IR
 
 ```bash
-mbspec-ir-dipole trajectory.lammpstrj ir.json > dipole.dat
-mbspec-ir-response dipole.dat ir.json > response.dat
-mbspec-ir-spectrum response.dat ir.json > spectrum.dat
+./bin/mbspec-ir-dipole trajectory.lammpstrj ir.json > dipole.dat
+./bin/mbspec-ir-response dipole.dat ir.json > response.dat
+./bin/mbspec-ir-spectrum response.dat ir.json > spectrum.dat
 ```
 
 IR takes LAMMPS coordinates and dipole columns in external dipole mode. The
@@ -151,9 +155,9 @@ See the [IR guide](src/infrared/README.md).
 ## Raman
 
 ```bash
-mbspec-raman-polarizability trajectory.lammpstrj raman.json > polarizability.dat
-mbspec-raman-response polarizability.dat raman.json > response.dat
-mbspec-raman-spectrum response.dat raman.json > spectrum.dat
+./bin/mbspec-raman-polarizability trajectory.lammpstrj raman.json > polarizability.dat
+./bin/mbspec-raman-response polarizability.dat raman.json > response.dat
+./bin/mbspec-raman-spectrum response.dat raman.json > spectrum.dat
 ```
 
 The water polarizability stage accepts coordinates in LAMMPS or XYZ format.
@@ -162,8 +166,8 @@ See the [Raman guide](src/raman/README.md).
 ## SFG
 
 ```bash
-mbspec-sfg-response trajectory.lammpstrj sfg.json > response.dat
-mbspec-sfg-spectrum response.dat sfg.json > spectrum.dat
+./bin/mbspec-sfg-response trajectory.lammpstrj sfg.json > response.dat
+./bin/mbspec-sfg-spectrum response.dat sfg.json > spectrum.dat
 ```
 
 SFG takes a LAMMPS water slab trajectory with coordinate and dipole columns.
@@ -173,8 +177,8 @@ and the water refractive-index tables. See [Fresnel post-processing](src/sfg/REA
 ## Power
 
 ```bash
-mbspec-power-response trajectory.lammpstrj power.json > response.dat
-mbspec-power-spectrum response.dat power.json > spectrum.dat
+./bin/mbspec-power-response trajectory.lammpstrj power.json > response.dat
+./bin/mbspec-power-spectrum response.dat power.json > spectrum.dat
 ```
 
 Power takes LAMMPS dump files with `vx`, `vy`, and `vz` columns or XYZ files

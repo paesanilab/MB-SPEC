@@ -1,5 +1,6 @@
 AC_PREREQ([2.70])
 AC_INIT([mb-spec], [1.0.0])
+AC_PREFIX_DEFAULT([$(pwd -P)])
 AC_CONFIG_SRCDIR([src/tools/io-tools.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -148,7 +149,6 @@ AC_CONFIG_FILES([
   src/sfg/Makefile
   src/power/Makefile
   src/unittests/Makefile
-  tests/Makefile
 ])
 AC_OUTPUT
 

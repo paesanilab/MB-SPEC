@@ -42,13 +42,19 @@ jobs:
         run: autoreconf -fi
       - name: Configure
         run: ./configure CXX=${{ matrix.cxx }} --enable-werror
-      # The GCC distribution check builds and tests the extracted archive.
+      # The GCC distribution check builds, tests, and installs the extracted archive.
       - name: Build
         if: matrix.cxx != 'g++'
         run: make -j"$(nproc)"
       - name: Test
         if: matrix.cxx != 'g++'
         run: make -j"$(nproc)" check
+      - name: Install into the build directory
+        if: matrix.cxx != 'g++'
+        run: |
+          make install
+          test -x ./bin/mbspec-ir-dipole
+          test -f ./share/mb-spec/json_template/ir.json
       - name: Distribution check
         if: matrix.cxx == 'g++'
         run: make -j"$(nproc)" distcheck DISTCHECK_CONFIGURE_FLAGS="CXX=g++ --enable-werror"
@@ -64,12 +70,10 @@ jobs:
             src/tools/*.log
             src/unittests/*.log
             src/unittests/.build/runs/**/stderr.log
-            tests/*.log
             mb-spec-*/_build/sub/config.log
             mb-spec-*/_build/sub/src/tools/*.log
             mb-spec-*/_build/sub/src/unittests/*.log
             mb-spec-*/_build/sub/src/unittests/.build/runs/**/stderr.log
-            mb-spec-*/_build/sub/tests/*.log
 
   sanitizers:
     name: g++ / ASan + UBSan
@@ -93,6 +97,8 @@ jobs:
         env:
           UBSAN_OPTIONS: print_stacktrace=1
         run: make -j"$(nproc)" check
+      - name: Install into the build directory
+        run: make install
       - name: Upload logs
         if: failure()
         uses: actions/upload-artifact@v7
@@ -105,7 +111,6 @@ jobs:
             src/tools/*.log
             src/unittests/*.log
             src/unittests/.build/runs/**/stderr.log
-            tests/*.log
 
   mkl:
     name: g++ / Intel MKL
@@ -121,13 +126,14 @@ jobs:
         run: sh .github/install-mkl.sh autoconf automake make pkgconf intel-oneapi-mkl-core-devel-2026.2
       - name: Bootstrap
         run: autoreconf -fi
-      - name: Configure, build and test
+      - name: Configure, build, test and install
         run: |
           export PKG_CONFIG_PATH="$MKLROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
           export LD_LIBRARY_PATH="$MKLROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           ./configure CXX=g++ --with-lapack=mkl --enable-werror
           make -j"$(nproc)"
           make -j"$(nproc)" check
+          make install
       - name: Upload logs
         if: failure()
         uses: actions/upload-artifact@v7
@@ -140,7 +146,6 @@ jobs:
             src/tools/*.log
             src/unittests/*.log
             src/unittests/.build/runs/**/stderr.log
-            tests/*.log
 
   reference-check:
     name: Historical reference comparison
@@ -168,41 +173,25 @@ jobs:
             "intel-oneapi-mkl-core-2026.2=$MKL_VERSION" \
             "intel-oneapi-mkl-core-devel-2026.2=$MKL_VERSION" \
             "intel-oneapi-mkl-classic-include-2026.2=$MKL_VERSION"
-      - name: Build master and regenerate references
-        run: sh tests/generate-reference.sh historical-master "$RUNNER_TEMP/reference"
-      - name: Compare with committed references
+      - name: Build and check historical master
         run: |
-          committed=tests/reference
-          generated="$RUNNER_TEMP/reference"
-          for dir in "$committed" "$generated"; do
-            grep -Fx "master commit: $MASTER_COMMIT" "$dir/PROVENANCE"
-          done
-
-          committed_files="$RUNNER_TEMP/reference-files-committed.txt"
-          generated_files="$RUNNER_TEMP/reference-files-generated.txt"
-          (cd "$committed" && find . -type f -name '*.dat' -print | LC_ALL=C sort) > "$committed_files"
-          (cd "$generated" && find . -type f -name '*.dat' -print | LC_ALL=C sort) > "$generated_files"
-          diff -u "$committed_files" "$generated_files"
-          if [[ ! -s "$committed_files" ]]; then
-            echo "No reference data files found" >&2
-            exit 1
-          fi
-
-          status=0
-          while IFS= read -r file; do
-            sh tests/compare.sh "$committed/$file" "$generated/$file" || status=1
-          done < "$committed_files"
-          exit $status
+          sh src/unittests/build-historical.sh historical-master
+          autoreconf -fi
+          ./configure --with-lapack=mkl --enable-werror
+          make -C src/unittests check-historical
+          src/unittests/check-historical historical-master/src
       - name: Upload reference diagnostics
         if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: logs-reference-check
           retention-days: 7
+          include-hidden-files: true
           path: |
+            config.log
             historical-master/config.log
-            ${{ runner.temp }}/reference/PROVENANCE
-            ${{ runner.temp }}/reference-files-*.txt
+            src/unittests/.build/runs/**/stderr.log
+            src/unittests/.build/runs/**/stdout.dat
 
   required:
     name: MB-SPEC CI

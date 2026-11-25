@@ -4,7 +4,7 @@
 The generated files are committed; this script documents how they were made
 and is not run by `make check`. Run it from any directory:
 
-    python3 tests/data/generate-inputs.py
+    python3 src/unittests/historical/inputs/generate-inputs.py
 
 It writes, next to this script:
   water4.xyz             4 flexible waters, 8 frames (IR and Raman)

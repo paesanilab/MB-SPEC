@@ -1,8 +1,0 @@
-#!/bin/sh
-# Power workflow: velocity autocorrelation -> power spectrum.
-. "${srcdir:-$(dirname "$0")}/common.sh"
-
-run response.dat "$(prog power response)" "$data/water4-vel.lammpstrj" "$data/power.json"
-run spectrum.dat "$(prog power spectrum)" response.dat                 "$data/power.json"
-check response.dat spectrum.dat
-finish

@@ -27,7 +27,11 @@ Makefile.in
 /mb-spec-*/
 
 # Programs.
+/bin/
 /src/*/mbspec-*
+
+# Data installed with the default prefix.
+/share/mb-spec/
 
 # Programs under their pre-rename names, as built by master and older
 # checkouts (previously ignored by per-directory .gitignore files).

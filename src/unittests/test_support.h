@@ -260,9 +260,11 @@ inline Table correlation(Table properties, bool subtract_mean, double unit = 1.0
 struct Suite {
     std::string name, section;
     fs::path work;
+    fs::path legacy_program_root;
     size_t passed = 0, failed = 0, sequence = 0;
-    explicit Suite(std::string workflow, std::string config_section)
-        : name(std::move(workflow)), section(std::move(config_section)) {
+    explicit Suite(std::string workflow, std::string config_section, fs::path legacy_root = {})
+        : name(std::move(workflow)), section(std::move(config_section)),
+          legacy_program_root(std::move(legacy_root)) {
         const auto run_id = std::chrono::system_clock::now().time_since_epoch().count();
         work = build_root / ".build" / "runs" /
                (name + "-" + std::to_string(getpid()) + "-" + std::to_string(run_id));
@@ -300,16 +302,19 @@ struct Suite {
     }
     fs::path run(const std::string& executable, const fs::path& input_path, const Json& config,
                  const std::string& expected_error = "", int threads = 1,
-                 const std::string& raw_config = "") {
-        auto directory = work / std::to_string(++sequence);
-        fs::create_directory(directory);
+                 const std::string& raw_config = "", const fs::path& working_directory = {}) {
+        const auto directory = working_directory.empty() ? work / std::to_string(++sequence)
+                                                         : working_directory;
+        fs::create_directories(directory);
         auto config_path = directory / "config.json";
         write(config_path, raw_config.empty() ? config.dump(2) : raw_config);
         auto output = directory / "stdout.dat", log = directory / "stderr.log";
         const fs::path stage = executable;
         const auto workflow = stage.parent_path().string();
-        const auto program = program_root / workflow /
-            ("mbspec-" + (workflow == "infrared" ? "ir" : workflow) + "-" + stage.filename().string());
+        const auto program = legacy_program_root.empty()
+            ? program_root / workflow /
+                ("mbspec-" + (workflow == "infrared" ? "ir" : workflow) + "-" + stage.filename().string())
+            : legacy_program_root / stage;
         require(fs::exists(program), "missing executable " + program.string());
         pid_t child = fork();
         require(child >= 0, "fork failed");

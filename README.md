@@ -6,7 +6,7 @@ For water, MB-SPEC includes built-in many-body dipole moment (MB-$`\mu`$) and po
 ## Build
 
 MB-SPEC requires Autotools, a C++ compiler with OpenMP support, GSL, and Intel
-MKL with its LAPACKE headers and libraries. From the repository root:
+MKL with its LAPACKE headers and libraries. From the repository root, run `compile.sh` or
 
 ```bash
 autoreconf -fi
@@ -14,44 +14,44 @@ autoreconf -fi
 make -j4
 ```
 
-`compile.sh` is a convenience script for Intel compilers. 
-Executables are created in `src/infrared`, `src/raman`, `src/sfg`, and `src/power`.
+All executables are created in `src/infrared`, `src/raman`, `src/sfg`, and `src/power`.
 
 ## Workflows
 
 Use `OMP_NUM_THREADS` to set parallelism for stages that support OpenMP. 
 The trajectory may be LAMMPS or `.xyz` format.
-All variables for `INFRARED`, `RAMAN`, `SFG`, and `POWER` are specified in the JSON file.
+All variables for `INFRARED`, `RAMAN`, `SFG`, and `POWER` are specified in their respective 
+JSON files in `json_template/`
 
 ## IR
 
 ```bash
-./dipole trajectory.lammpstrj ir.json > dipole.dat
-./response dipole.dat ir.json > response.dat
-./spectrum response.dat ir.json > spectrum.dat
+./src/ir/dipole trajectory.lammpstrj json_template/ir.json > dipole.dat
+./src/ir/response dipole.dat json_template/ir.json > response.dat
+./src/ir/spectrum response.dat json_template/ir.json > spectrum.dat
 ```
 
-Needs `INFRARED` JSON and coordinates; external dipole mode also needs dipoles.
+Needs coordinates
 
 ## Raman
 
 ```bash
-./polarizability trajectory.lammpstrj raman.json > polarizability.dat
-./response polarizability.dat raman.json > response.dat
-./spectrum response.dat raman.json > spectrum.dat
+./src/raman/polarizability trajectory.lammpstrj json_template/raman.json > polarizability.dat
+./src/raman/response polarizability.dat json_template/raman.json > response.dat
+./src/raman/spectrum response.dat json_template/raman.json > spectrum.dat
 ```
 
-Needs `RAMAN` JSON and coordinates.
+Needs coordinates
 
 ## SFG
 
 ```bash
-./response trajectory.lammpstrj sfg.json > response.dat
-./spectrum response.dat sfg.json > spectrum.dat
-./fresnel fresnel.json
+./src/sfg/response trajectory.lammpstrj json_template/sfg.json > response.dat
+./src/sfg/spectrum response.dat json_template/sfg.json > spectrum.dat
+./src/sfg/fresnel src/sfg/fresnel.json
 ```
 
-Needs `SFG` JSON, coordinates, and dipoles.
+Needs coordinates and dipoles
 
 The fresnel factor calculation also requires the three SFG tensor component files (xxz.dat, zzz.dat, and xzx.dat) 
 and the refractive index files in `src/sfg/fresnel_factors/`. 
@@ -59,11 +59,11 @@ and the refractive index files in `src/sfg/fresnel_factors/`.
 ## Power
 
 ```bash
-./response trajectory.lammpstrj power.json > response.dat
-./spectrum response.dat power.json > spectrum.dat
+./src/power/response trajectory.lammpstrj json_template/power.json > response.dat
+./src/power/spectrum response.dat json_template/power.json > spectrum.dat
 ```
 
-Needs `POWER` JSON and velocities. 
+Needs velocities. 
 
 ## References
 

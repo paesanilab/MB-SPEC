@@ -158,9 +158,7 @@ induction contribution, including two-body and higher-body terms.
 The full combination replaces the TTM4 monomer tensors with Avila tensors
 and adds the polynomial correction. The `1b+2b` mode includes the polynomial
 and isolated-pair induction, switching both to zero at the outer cutoff. It
-excludes higher-body induction. This deliberately truncated approximation
-differs from the published MB-alpha two-body term in Eq. (2), which retains
-long-range induction [Medders and Paesani (2015), Section 2, Eq. (11)](../../literature/ct501131j.pdf).
+excludes higher-body induction. 
 
 ### Two-body switching
 
@@ -333,9 +331,9 @@ implementation assumes the correlation has decayed to zero at the upper
 integration limit.
 
 Gaussian smoothing acts on the selected intensity, $I$ or $I_{\mathrm{BE}}$.
-A positive
-`smoothing_fwhm_cm1` sets its full width at half maximum (FWHM) in cm⁻¹;
-omission or zero disables it. For FWHM $w$ and wavenumber spacing
+The Gaussian is truncated at three standard deviations. 
+A positive `smoothing_fwhm_cm1` sets its full width at half maximum (FWHM) in cm⁻¹.
+For FWHM $w$ and wavenumber spacing
 $\Delta\widetilde\nu$, the kernel width and length are
 
 $$
@@ -348,7 +346,6 @@ g_j=\frac{\exp[-(j-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)]}
 {\sum_{m=0}^{K-1}\exp[-(m-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)]}.
 $$
 
-The Gaussian is truncated at three standard deviations. 
 
 ## Scientific limitations
 

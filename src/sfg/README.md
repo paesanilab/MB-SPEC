@@ -1,7 +1,7 @@
 # Sum-frequency generation spectra with MB-SPEC
 
 The SFG workflow calculates a truncated dipole-polarizability cross-correlation function for water.
-It requires a water slab trajectory with the permanent and induced dipole columns required by the reader.
+It requires a water slab trajectory with the permanent and induced dipole moment columns.
 
 Run:
 
@@ -185,6 +185,10 @@ $$
 B_{ab}^{mn}=\frac12\left[\mu_{a,k}^{m}\alpha_{b,ij}^{n}
 +\mu_{a,k'}^{m}\alpha_{b,i'j'}^{n}\right].
 $$
+
+```math
+B_{ab}^{mn} = \frac{1}{2}\bigl[ \mu_{a,k}^{m}\alpha_{b,ij}^{n} + \mu_{a,k'}^{m}\alpha_{b,i'j'}^{n} \bigr].
+```
 
 | Component | $(k,ij)$ | $(k',i'j')$ |
 |---|---|---|

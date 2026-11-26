@@ -24,7 +24,7 @@ All variables for `INFRARED`, `RAMAN`, `SFG`, and `POWER` are specified in their
 JSON files in `json_template/`
 
 Each module’s source directory contains a README that describes its variables and equations in detail (e.g., `src/infrared/README.md`).
-In addition, `src/README-ind-dip-pol.md` describes the TTM4-Ind model and 
+In addition, `src/tools/README-ind-dip-pol.md` describes the TTM4-Ind model and 
 how MB-SPEC uses it to calculate induction contributions to the dipole moment and polarizability of water.
 
 ## IR

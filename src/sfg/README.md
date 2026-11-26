@@ -123,8 +123,7 @@ Here, $P_{\mu,a}$ and $I_{\mu,a}$ are the switched MB-mu polynomial and TTM4
 induced-dimer dipoles allocated to molecule $a$. Similarly, $P_{\alpha,a}$
 and $J_{\alpha,a}$ are the allocated switched MB-alpha polynomial correction
 and TTM4 pair induction increment. The allocation is defined below.
-There is no internal nonadditive-polarizability mode. Both external dipole
-triplets remain required for every decomposition.
+There is no internal nonadditive-polarizability mode. 
 
 The polarizability induction increment is evaluated for an isolated dimer:
 
@@ -160,9 +159,7 @@ or induction contributions.
 Allocation to $b$ uses $|g_b|$ in the numerator; pairs with zero denominator
 are skipped. Both properties use the same switch and allocation. For each
 eligible pair, the two allocations sum to the switched pair contribution
-before the correlation applies additional interface weights. This allocation
-is an existing molecular-response convention; conserving the pair tensor
-alone does not establish a unique interfacial response.
+before the correlation applies additional interface weights.
 
 ### Two-body switching
 

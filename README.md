@@ -86,7 +86,7 @@ The following publications describe the theoretical foundations of MB-SPEC and s
 12. Sengupta, Moberg, Paesani, and Tyrode, J. Phys. Chem. Lett. 9, 6744 (2018)
 13. Ohno, Wang, Paesani, Skinner, and Geiger, J. Phys. Chem. A 122, 4457 (2018)
 14. Sun, Tang, Imoto, Moberg, Ohto, Paesani, Bonn, Backus, and Nagata, Phys. Rev. Lett. 121, 246101 (2018)
-15. Hudait, Moberg, Qiu, Odendahla , Paesani, and Molinero Proc. Natl. Acad. Sci. U.S.A. 115, 8266 (2018)
+15. Hudait, Moberg, Qiu, Odendahla, Paesani, and Molinero, Proc. Natl. Acad. Sci. U.S.A. 115, 8266 (2018)
 16. Moberg, Li, Reddy, and Paesani, J. Chem. Phys. 150, 034701 (2019)
 17. Moberg, Becker, Dierking, Zurheide, Bandow, Buck, Hudait, Molinero, Paesania, and Zeuch, Proc. Natl. Acad. Sci. U.S.A. 116, 24413 (2019)
 18. Rashmi and Paesani, J. Am. Chem. Soc. 147, 1903 (2025)

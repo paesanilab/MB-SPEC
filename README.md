@@ -3,7 +3,7 @@
 MB-SPEC calculates vibrational spectra from molecular dynamics trajectories, including those generated with MB-pol and other MB-nrg models. It supports infrared (IR), Raman, sum-frequency generation (SFG), and velocity power spectra. 
 For water, MB-SPEC includes built-in many-body dipole moment (MB-$`\mu`$) and polarizability (MB-$`\alpha`$) surfaces that can be applied to compatible trajectories generated with any potential energy surface.
 
-**Release status:** MB-SPEC is currently in beta. We plan to improve the build process in an upcoming release.
+`Release status`: MB-SPEC is currently in beta. We plan to improve the build process in an upcoming release.
 
 ## Build
 
@@ -28,6 +28,8 @@ JSON files in `json_template/`
 Each module’s source directory contains a README that describes its variables and equations in detail (e.g., `src/infrared/README.md`).
 In addition, `src/tools/README-ind-dip-pol.md` describes the TTM4-Ind model and 
 how MB-SPEC uses it to calculate induction contributions to the dipole moment and polarizability of water.
+
+Some LAMMPS and .xyz input file templates can be found at `/home/rrashmi/projects/GitHub/MB-SPEC/src/unittests/inputs`.
 
 ## IR
 
@@ -72,7 +74,9 @@ Needs velocities.
 
 ## Scientific Limitation
 
-Use only the 1b and 1b+2b polarizability surfaces for periodic bulk simulations. The nb, 1b+nb, and 1b+2b+nb modes currently lack Ewald summation, and have not been validated for periodic bulk simulations. We aim to address this limitation in a future release.
+Use only the `1b` and `1b+2b` polarizability surfaces for periodic bulk simulations. 
+The `nb`, `1b+nb`, and `1b+2b+nb` modes currently lack Ewald summation, and have not been validated 
+for periodic bulk simulations. We aim to address this limitation in a future release.
 
 ## References
 

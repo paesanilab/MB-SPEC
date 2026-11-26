@@ -96,9 +96,24 @@ void check_response_tables(Suite& suite, const std::string& workflow)
         require(!table(suite.run(program, input, config), 2).empty(), "empty spectrum");
     });
 
+    suite.check(workflow + " stops reading at the exclusive cutoff", [&] {
+        auto cutoff_config = config;
+        cutoff_config[section]["int_max"] = 1.5;
+        cutoff_config[section]["spectrum_transform_time_ps"] = 1.5;
+        const std::string prefix = "0 6\n0.25 5\n0.5 4\n0.75 3\n1 2\n1.25 1\n";
+        const auto input = suite.fixture(workflow + "-cutoff.dat", prefix);
+        const auto expected = contents(suite.run(program, input, cutoff_config));
+        for (const auto* tail : {"1.5 0\n1.75 0\n2.25 0\nmalformed\n", "1.5 unused\n"}) {
+            suite.fixture(workflow + "-cutoff.dat", prefix + tail);
+            require(contents(suite.run(program, input, cutoff_config)) == expected,
+                    "response rows at or above the cutoff changed the spectrum");
+        }
+    });
+
     suite.check(workflow + " rejects malformed, nonfinite and uneven response rows", [&] {
         const auto bad_row = workflow + "-invalid.dat";
-        for (const auto* tail : {"malformed\n", "2 nan\n", "2 1e999\n", "2 1 2\n", "2\n", "2 1garbage\n"}) {
+        for (const auto* tail : {"malformed\n", "nan 1\n", "1.125 nan\n", "1.125 1e999\n",
+                                 "1.125 1 2\n", "1.125\n", "1.125 1garbage\n"}) {
             const auto input = suite.fixture(bad_row, rounded.str() + tail);
             suite.run(program, input, config, bad_row + ":10: expected exactly two finite numbers");
         }

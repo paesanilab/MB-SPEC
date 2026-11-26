@@ -1,4 +1,5 @@
-#include <set>
+#include <map>
+#include <string_view>
 
 #include "test_support.h"
 
@@ -7,6 +8,8 @@ namespace {
 using namespace test;
 
 const fs::path historical = root / "historical";
+const fs::path reference_root = historical / "references";
+using Outputs = std::map<fs::path, fs::path>;
 
 struct PrintedNumber {
     double value;
@@ -78,27 +81,34 @@ void compare(const fs::path& actual_file, const fs::path& reference_file, size_t
 
 struct HistoricalSuite {
     Suite suite;
-    fs::path references;
+    fs::path workflow_directory;
     fs::path sfg_data;
     Json config;
-    std::set<fs::path>& checked_files;
+    Outputs& outputs;
+    bool exporting;
 
     HistoricalSuite(const std::string& workflow, const fs::path& legacy_root,
-                    const fs::path& installed_prefix, std::set<fs::path>& checked)
+                    const fs::path& installed_prefix, Outputs& results, bool export_outputs)
         : suite("historical-" + workflow, "", legacy_root,
                 installed_prefix.empty() ? fs::path{} : installed_prefix / "bin"),
-          references(historical / "references" / workflow),
-          sfg_data(installed_prefix.empty() ? root.parent_path() / "sfg" :
-                   installed_prefix / "share/mb-spec/sfg"),
+          workflow_directory(workflow),
+          sfg_data((legacy_root.empty() ? root.parent_path() : legacy_root) / "sfg"),
           config(Json::parse(contents(historical / "inputs" / (workflow + ".json")))),
-          checked_files(checked) {}
+          outputs(results), exporting(export_outputs)
+    {
+        if (!installed_prefix.empty())
+            sfg_data = installed_prefix / "share/mb-spec/sfg";
+    }
 
     void check_output(const fs::path& actual, const fs::path& name, size_t columns,
                       double absolute_scale = 1e-10)
     {
-        const auto reference = references / name;
-        compare(actual, reference, columns, absolute_scale);
-        require(checked_files.insert(reference).second, "duplicate reference check: " + reference.string());
+        const auto relative = workflow_directory / name;
+        if (exporting)
+            read_numbers(actual, columns);
+        else
+            compare(actual, reference_root / relative, columns, absolute_scale);
+        require(outputs.emplace(relative, actual).second, "duplicate historical output: " + relative.string());
     }
 
     fs::path stage(const std::string& executable, const fs::path& input, const fs::path& name,
@@ -161,19 +171,45 @@ void check_power(HistoricalSuite& test)
     test.stage("power/spectrum", response, "spectrum.dat", 2);
 }
 
+void export_references(const fs::path& directory, const Outputs& outputs)
+{
+    require(fs::create_directory(directory), "export destination already exists: " + directory.string());
+    try {
+        for (const auto& [relative, actual] : outputs) {
+            const auto destination = directory / relative;
+            fs::create_directories(destination.parent_path());
+            fs::copy_file(actual, destination);
+        }
+    } catch (...) {
+        std::error_code cleanup_error;
+        fs::remove_all(directory, cleanup_error);
+        if (cleanup_error)
+            std::cerr << "Could not clean up incomplete export at " << directory << ": "
+                      << cleanup_error.message() << '\n';
+        throw;
+    }
+}
+
 } // namespace
 
 int main(int argc, char** argv)
 {
-    const bool installed = argc == 3 && std::string(argv[1]) == "--installed-prefix";
-    if ((!installed && argc > 2) || (argc == 2 && std::string(argv[1]) == "--installed-prefix")) {
-        std::cerr << "Usage: " << argv[0] << " [legacy-src-directory | --installed-prefix DIR]\n";
+    const std::string_view option = argc > 1 ? argv[1] : "";
+    const bool installed = argc == 3 && option == "--installed-prefix";
+    const bool exporting = argc == 4 && option == "--export-references";
+    const bool legacy = argc == 2 && option != "--installed-prefix" && option != "--export-references";
+    if (argc != 1 && !installed && !exporting && !legacy) {
+        std::cerr << "Usage: " << argv[0]
+                  << " [LEGACY_SRC | --installed-prefix DIR | --export-references LEGACY_SRC OUTPUT_DIR]\n";
         return EXIT_FAILURE;
     }
 
     try {
-        const auto legacy_root = argc == 2 ? fs::absolute(argv[1]) : fs::path{};
+        const auto legacy_root = (legacy || exporting) ? fs::absolute(argv[exporting ? 2 : 1]) : fs::path{};
         const auto installed_prefix = installed ? fs::absolute(argv[2]) : fs::path{};
+        const auto output_directory = exporting ? fs::absolute(argv[3]) : fs::path{};
+        if (exporting)
+            require(!fs::exists(output_directory), "export destination already exists: " + output_directory.string());
         if (installed) {
             const auto data = installed_prefix / "share/mb-spec";
             const auto source = root.parent_path().parent_path();
@@ -189,20 +225,27 @@ int main(int argc, char** argv)
             {"ir", check_ir}, {"raman", check_raman}, {"sfg", check_sfg}, {"power", check_power},
         };
         int status = 0;
-        std::set<fs::path> checked;
+        Outputs outputs;
+        const auto description = exporting ? "collect historical outputs" : "outputs match the pinned master reference";
         for (const auto& workflow : cases) {
-            HistoricalSuite test(workflow.first, legacy_root, installed_prefix, checked);
-            test.suite.check("outputs match the pinned master reference", [&] { workflow.second(test); });
+            HistoricalSuite test(workflow.first, legacy_root, installed_prefix, outputs, exporting);
+            test.suite.check(description, [&] { workflow.second(test); });
             status |= test.suite.finish();
         }
-        if (status == 0) {
-            for (const auto& file : fs::recursive_directory_iterator(historical / "references")) {
+        if (status != 0)
+            return status;
+        if (exporting) {
+            export_references(output_directory, outputs);
+            std::cout << "Exported " << outputs.size() << " historical reference files to " << output_directory << '\n';
+        } else {
+            for (const auto& file : fs::recursive_directory_iterator(reference_root)) {
                 if (file.is_regular_file() && file.path().extension() == ".dat")
-                    require(checked.count(file.path()), "unchecked reference: " + file.path().string());
+                    require(outputs.count(file.path().lexically_relative(reference_root)),
+                            "unchecked reference: " + file.path().string());
             }
-            std::cout << "Matched " << checked.size() << " historical reference files\n";
+            std::cout << "Matched " << outputs.size() << " historical reference files\n";
         }
-        return status;
+        return EXIT_SUCCESS;
     } catch (const std::exception& error) {
         std::cerr << "Historical reference check: " << error.what() << '\n';
         return EXIT_FAILURE;

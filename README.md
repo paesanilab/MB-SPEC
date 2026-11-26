@@ -13,6 +13,13 @@ Bootstrapping from a Git checkout requires Autoconf 2.70+ and Automake 1.16+.
 The required macros from the GNU Autoconf Archive and pkgconf are bundled in
 [`m4/`](m4/README.md). Release tarballs include the generated `configure` script.
 
+On Ubuntu, install the dependencies for the default build with GCC.
+
+```bash
+sudo apt-get update
+sudo apt-get install g++ make autoconf automake pkgconf liblapacke-dev
+```
+
 For a generic LAPACKE installation on the compiler's normal search paths, run
 these commands from the source directory.
 
@@ -105,13 +112,16 @@ options remain removed. LAPACKE is required and cannot be disabled.
 
 Use `make -jN` to select the number of parallel build jobs. Run `make clean`
 before changing compilers or compilation flags, then rerun `./configure`
-with the new settings, rebuild, and rerun `make install` to update `./bin/`. Run
+with the new settings, rebuild, and rerun `make install` to update the installed programs. Run
 `autoreconf -fi` again after editing `configure.ac`, `Makefile.am`, or files in
 `m4/`.
 
 By default, `make install` puts the programs in `./bin/` and their data in
 `./share/mb-spec/` relative to the directory where you ran `configure`.
 Use `./configure --prefix=/absolute/path` to install into another directory.
+To build outside the source tree, bootstrap in the source directory, then
+run `/absolute/path/to/source/configure` from a separate build directory.
+Run `make`, `make check`, and `make install` in that build directory.
 Run `make uninstall` from the configured build directory to remove the installed files.
 Each program is named `mbspec-<workflow>-<stage>`.
 
@@ -139,15 +149,19 @@ threading, and complete workflows against a pinned `master` baseline.
 ## Quickstart
 
 Run these commands after `make install` to calculate an IR spectrum from the
-bundled eight-frame water trajectory. Set `source_dir` to the source root when
-building in a separate directory.
+bundled eight-frame water trajectory. The assignments below assume you are in
+the build directory after an in-tree build with the default install prefix.
+For an out-of-tree build, set `source_dir` to the absolute path of the checkout
+or extracted release tarball. For a custom `--prefix`, set `prefix` to that path.
 
 ```bash
-source_dir=.
+source_dir="$PWD"
+prefix="$PWD"
+export PATH="$prefix/bin:$PATH"
 example="$source_dir/src/unittests/historical/inputs"
-OMP_NUM_THREADS=1 ./bin/mbspec-ir-dipole "$example/water4.xyz" "$example/ir.json" > dipole.dat
-./bin/mbspec-ir-response dipole.dat "$example/ir.json" > response.dat
-./bin/mbspec-ir-spectrum response.dat "$example/ir.json" > spectrum.dat
+OMP_NUM_THREADS=1 mbspec-ir-dipole "$example/water4.xyz" "$example/ir.json" > dipole.dat
+mbspec-ir-response dipole.dat "$example/ir.json" > response.dat
+mbspec-ir-spectrum response.dat "$example/ir.json" > spectrum.dat
 ```
 
 `dipole.dat` contains eight rows with time in ps and three dipole components in
@@ -157,17 +171,17 @@ both in cm⁻¹.
 
 ## Workflows
 
-Run the commands below from the top-level build directory after `make install`.
-Copy the corresponding JSON file from `./share/mb-spec/json_template/` and
-adjust it for your trajectory. To run the programs from another directory, add
-the installed `bin/` directory to your `PATH`. Use `OMP_NUM_THREADS` to set
-parallelism for stages that support OpenMP.
+Run the commands from your working directory after adding `$prefix/bin` to
+`PATH` as shown in the quickstart. Copy the corresponding JSON file from
+`$prefix/share/mb-spec/json_template/` and adjust it for your trajectory. Use
+`OMP_NUM_THREADS` to set parallelism for stages that support OpenMP.
 
 Use `--help` on any executable to see its arguments. A workflow configuration
 must contain the section for the executable you are running. Use the matching
 template for recognized keys. A single file can contain several workflow
-sections. IR, Raman, and Power spectrum inputs require two finite numeric
-columns and an evenly spaced time grid.
+sections. The IR, Raman, and Power spectrum readers stop at the first time at
+or above `int_max`. Rows below the cutoff require two finite numeric columns
+and a strictly increasing, evenly spaced time grid.
 
 The [TTM4-Ind model guide](src/tools/README-ind-dip-pol.md) explains how MB-SPEC
 calculates induction contributions to the dipole moment and polarizability of water.
@@ -176,9 +190,9 @@ Example LAMMPS and XYZ trajectories are available in [the test fixtures](src/uni
 ## IR
 
 ```bash
-./bin/mbspec-ir-dipole trajectory.lammpstrj ir.json > dipole.dat
-./bin/mbspec-ir-response dipole.dat ir.json > response.dat
-./bin/mbspec-ir-spectrum response.dat ir.json > spectrum.dat
+mbspec-ir-dipole trajectory.lammpstrj ir.json > dipole.dat
+mbspec-ir-response dipole.dat ir.json > response.dat
+mbspec-ir-spectrum response.dat ir.json > spectrum.dat
 ```
 
 IR takes LAMMPS coordinates and dipole columns in external dipole mode. The
@@ -188,9 +202,9 @@ See the [IR guide](src/infrared/README.md).
 ## Raman
 
 ```bash
-./bin/mbspec-raman-polarizability trajectory.lammpstrj raman.json > polarizability.dat
-./bin/mbspec-raman-response polarizability.dat raman.json > response.dat
-./bin/mbspec-raman-spectrum response.dat raman.json > spectrum.dat
+mbspec-raman-polarizability trajectory.lammpstrj raman.json > polarizability.dat
+mbspec-raman-response polarizability.dat raman.json > response.dat
+mbspec-raman-spectrum response.dat raman.json > spectrum.dat
 ```
 
 The water polarizability stage accepts coordinates in LAMMPS or XYZ format.
@@ -199,8 +213,8 @@ See the [Raman guide](src/raman/README.md).
 ## SFG
 
 ```bash
-./bin/mbspec-sfg-response trajectory.lammpstrj sfg.json > response.dat
-./bin/mbspec-sfg-spectrum response.dat sfg.json > spectrum.dat
+mbspec-sfg-response trajectory.lammpstrj sfg.json > response.dat
+mbspec-sfg-spectrum response.dat sfg.json > spectrum.dat
 ```
 
 SFG takes a LAMMPS water slab trajectory with coordinate and dipole columns.
@@ -210,8 +224,8 @@ and the water refractive-index tables. See [Fresnel post-processing](src/sfg/REA
 ## Power
 
 ```bash
-./bin/mbspec-power-response trajectory.lammpstrj power.json > response.dat
-./bin/mbspec-power-spectrum response.dat power.json > spectrum.dat
+mbspec-power-response trajectory.lammpstrj power.json > response.dat
+mbspec-power-spectrum response.dat power.json > spectrum.dat
 ```
 
 Power takes LAMMPS dump files with `vx`, `vy`, and `vz` columns or XYZ files

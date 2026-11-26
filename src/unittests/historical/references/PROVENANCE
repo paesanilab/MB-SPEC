@@ -1,4 +1,5 @@
-Reference outputs generated from unmodified master by tests/generate-reference.sh.
+Reference outputs from unmodified master. See "Regenerate the historical outputs"
+in ../../README.md for the check-historical --export-references recipe.
 master commit: c516736c3946166e0ee81b2198854a67da660c99
 compiler: Ubuntu clang version 21.1.8 (6ubuntu1)
 CXXFLAGS: -g -O2 -fopenmp

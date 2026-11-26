@@ -53,24 +53,35 @@ rounding in the printed dipoles propagates through mean subtraction and
 autocorrelation. Generate the compact trajectories with
 `python3 historical/inputs/generate-inputs.py` from this directory.
 
-CI also builds the pinned commit independently with Clang and Intel MKL and
-runs the same check against the old executables. After configuring the current
-checkout and initializing MKL (`MKLROOT`), run these commands from the repository
-root to reproduce that verification locally. The historical build requires GSL.
+### Regenerate the historical outputs
+
+Build the pinned checkout with Clang 21.1.8, Intel MKL 2026.2, and GSL. CI uses
+Ubuntu 26.04 with `clang-21` and `libomp-21-dev` version `1:21.1.8-6ubuntu1`,
+`libgsl-dev`, and Intel's `intel-oneapi-mkl-{core,core-devel,classic-include}-2026.2`
+packages at version `2026.2.1-11`. Configure the current checkout in its source
+directory and initialize MKL so `MKLROOT` is set. Run these commands from the
+repository root.
 
 ```bash
-git worktree add --detach /tmp/mbspec-master c516736c3946166e0ee81b2198854a67da660c99
-sh src/unittests/build-historical.sh /tmp/mbspec-master
+historical_work=$(mktemp -d)
+git worktree add --detach "$historical_work/master" c516736c3946166e0ee81b2198854a67da660c99
+export LD_LIBRARY_PATH="$MKLROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+CXX=clang++-21 sh src/unittests/build-historical.sh "$historical_work/master"
 make -C src/unittests check-historical
-src/unittests/check-historical /tmp/mbspec-master/src
+src/unittests/check-historical "$historical_work/master/src"
+src/unittests/check-historical --export-references "$historical_work/master/src" "$historical_work/references"
+diff -r -x PROVENANCE src/unittests/historical/references "$historical_work/references"
 ```
 
-After installing with the default prefix, run
-`src/unittests/check-historical --installed-prefix "$PWD"` from the build
-directory to test the installed executables, templates, and Fresnel tables.
+The export directory must be new. It receives the raw outputs after all four
+workflows succeed. The final command checks byte-for-byte reproduction of the
+20 saved tables, as CI does with the pinned toolchain.
 
 Use Clang for the historical build. The original C++11 LAMMPS parser depends
 on operand evaluation order when assigning column indices. Clang evaluates
 them in the order used to generate the references. The current code's C++17
 build specifies that order.
 
+After installing, run `src/unittests/check-historical --installed-prefix "$prefix"`
+from the build directory to test the installed executables, templates, and
+Fresnel tables. Set `prefix` to `$PWD` for the default installation.

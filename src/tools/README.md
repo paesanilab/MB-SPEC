@@ -149,6 +149,6 @@ basis expressions; their fitted coefficients reside in the corresponding
 
 1. Partridge and Schwenke, J. Chem. Phys. 106, 4618 (1997)
 2. Lodi, Tennyson, and Polyansky, J. Chem. Phys. 135, 034113 (2011)
-3. G. Avila, J. Chem. Phys. 122, 144310 (2005)
-4. G. R. Medders and F. Paesani, J. Chem. Theory Comput. 11, 1145 (2015)
-5. C. J. Burnham, D. J. Anick, P. K. Mankoo, and G. F. Reiter, J. Chem. Phys. 128, 154519 (2008).
+3. Avila, J. Chem. Phys. 122, 144310 (2005)
+4. Medders and Paesani, J. Chem. Theory Comput. 11, 1145 (2015)
+5. Burnham, Anick, Mankoo, and Reiter, J. Chem. Phys. 128, 154519 (2008).

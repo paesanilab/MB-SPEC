@@ -29,7 +29,7 @@ Each module’s source directory contains a README that describes its variables 
 In addition, `src/tools/README-ind-dip-pol.md` describes the TTM4-Ind model and 
 how MB-SPEC uses it to calculate induction contributions to the dipole moment and polarizability of water.
 
-Some LAMMPS and .xyz input file templates can be found at `/home/rrashmi/projects/GitHub/MB-SPEC/src/unittests/inputs`.
+Some LAMMPS and .xyz input file templates can be found at `/src/unittests/inputs`.
 
 ## IR
 

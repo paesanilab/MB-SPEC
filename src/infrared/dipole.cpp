@@ -184,11 +184,17 @@ int main(int argc, char** argv)
   // Program setup and JSON input
   //----------------------------------------------------------------------------//
 
-  if (const auto status = mbspec::check_arguments(argc, argv, 3, "<trajectory> <mb-spec.json>"))
-      return *status;
+  const auto exit_code = mbspec::check_arguments(argc, argv, {"trajectory", "mb-spec.json"});
+
+  if (exit_code.has_value()) {
+    return *exit_code;
+  }
+
+  const std::string trajectory_path = argv[1];
+  const auto config_path = argv[2];
 
   System sys;
-  sys.SetUpFromJson("INFRARED", argv[argc - 1]);
+  sys.SetUpFromJson("INFRARED", config_path);
 
   std::vector<double> box(9);
 
@@ -207,15 +213,14 @@ int main(int argc, char** argv)
   size_t lineno(0);
   size_t frameno(0);
 
-  std::string fname = argv[1];
-  std::ifstream ifs_cmd(fname);
+  std::ifstream ifs_cmd(trajectory_path);
   if (!ifs_cmd) {
-    std::cerr << "could not open '" << fname << "' for reading" << std::endl;
+    std::cerr << "could not open '" << trajectory_path << "' for reading" << std::endl;
     return EXIT_FAILURE;
   }
 
-  const size_t pos = fname.rfind('.');
-  std::string format = (pos == std::string::npos) ? "" : fname.substr(pos + 1);
+  const size_t pos = trajectory_path.rfind('.');
+  std::string format = (pos == std::string::npos) ? "" : trajectory_path.substr(pos + 1);
   std::transform(format.begin(), format.end(), format.begin(), ::tolower);
 
   size_t imcon(0);
@@ -256,7 +261,7 @@ int main(int argc, char** argv)
   if (dms) {
     std::cerr << "Using LTP 1B DMS" << std::endl;
   } else {
-    std::cerr << "Reading from " << fname << std::endl;
+    std::cerr << "Reading from " << trajectory_path << std::endl;
   }
 
 
@@ -331,7 +336,7 @@ int main(int argc, char** argv)
                                     dump * frameno, !dms);
         }
       } catch (const std::exception& error) {
-        std::cerr << "IR trajectory input error in '" << argv[1]
+        std::cerr << "IR trajectory input error in '" << trajectory_path
                   << "': " << error.what() << std::endl;
         return EXIT_FAILURE;
       }

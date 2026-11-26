@@ -172,11 +172,17 @@ int main(int argc, char** argv)
     // Command-line input and POWER configuration
     // -------------------------------------------------------------------------
 
-    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<velocity_trajectory> <mb-spec.json>"))
-        return *status;
+    const auto exit_code = mbspec::check_arguments(argc, argv, {"velocity_trajectory", "mb-spec.json"});
+
+    if (exit_code.has_value()) {
+        return *exit_code;
+    }
+
+    const std::string trajectory_path = argv[1];
+    const auto config_path = argv[2];
 
     System sys;
-    sys.SetUpFromJson("POWER", argv[2]);
+    sys.SetUpFromJson("POWER", config_path);
     const double dump_frequency = sys.GetDumpFrequency();
     const double int_max = sys.GetIntMax();
     const size_t skip_initial_atoms = sys.GetSkipInitialAtoms();
@@ -201,13 +207,12 @@ int main(int argc, char** argv)
     // Trajectory input and per-frame total velocity
     // -------------------------------------------------------------------------
 
-    const std::string filename = argv[1];
-    const size_t suffix = filename.find_last_of('.');
+    const size_t suffix = trajectory_path.find_last_of('.');
     const std::string format = suffix == std::string::npos ? "" :
-        filename.substr(suffix + 1);
-    std::ifstream input(filename);
+        trajectory_path.substr(suffix + 1);
+    std::ifstream input(trajectory_path);
     if (!input) {
-        std::cerr << "could not open '" << filename << "' for reading"
+        std::cerr << "could not open '" << trajectory_path << "' for reading"
                   << std::endl;
         return EXIT_FAILURE;
     }

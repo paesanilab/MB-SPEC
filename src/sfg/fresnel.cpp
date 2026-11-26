@@ -175,13 +175,18 @@ void CheckMatchingGrid(const ComponentSpectrum& reference,
 }  // namespace
 
 int main(int argc, char* argv[]) {
-    if (const auto status = mbspec::check_arguments(argc, argv, 2, "<fresnel.json>"))
-        return *status;
+    const auto exit_code = mbspec::check_arguments(argc, argv, {"fresnel.json"});
+
+    if (exit_code.has_value()) {
+        return *exit_code;
+    }
+
+    const auto config_path = argv[1];
 
     try {
-        std::ifstream config_input(argv[1]);
+        std::ifstream config_input(config_path);
         if (!config_input) {
-            throw std::runtime_error("could not open '" + std::string(argv[1]) + "'");
+            throw std::runtime_error("could not open '" + std::string(config_path) + "'");
         }
         nlohmann::json config;
         config_input >> config;

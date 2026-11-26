@@ -11,19 +11,47 @@ Json historical_config(const std::string& workflow)
 
 void check_usage(Suite& suite)
 {
-    for (const auto* executable : {"infrared/dipole", "infrared/response", "infrared/spectrum",
-                                   "raman/polarizability", "raman/response", "raman/spectrum",
-                                   "power/response", "power/spectrum", "sfg/response", "sfg/spectrum",
-                                   "sfg/fresnel"}) {
+    struct Command {
+        const char* executable;
+        const char* synopsis;
+        bool config_only = false;
+    };
+    const Command commands[] = {
+        {"infrared/dipole", "mbspec-ir-dipole <trajectory> <mb-spec.json>"},
+        {"infrared/response", "mbspec-ir-response <dipole_file> <mb-spec.json>"},
+        {"infrared/spectrum", "mbspec-ir-spectrum <response.dat> <mb-spec.json>"},
+        {"raman/polarizability", "mbspec-raman-polarizability <trajectory> <mb-spec.json>"},
+        {"raman/response", "mbspec-raman-response <polarizability_file> <mb-spec.json>"},
+        {"raman/spectrum", "mbspec-raman-spectrum <response.dat> <mb-spec.json>"},
+        {"power/response", "mbspec-power-response <velocity_trajectory> <mb-spec.json>"},
+        {"power/spectrum", "mbspec-power-spectrum <response.dat> <mb-spec.json>"},
+        {"sfg/response", "mbspec-sfg-response <trajectory.lammpstrj> <mb-spec.json>"},
+        {"sfg/spectrum", "mbspec-sfg-spectrum <response.dat> <mb-spec.json>"},
+        {"sfg/fresnel", "mbspec-sfg-fresnel <fresnel.json>", true},
+    };
+    for (const auto& command : commands) {
+        const auto executable = command.executable;
         suite.check(std::string(executable) + " accepts help and rejects incorrect argument counts", [&] {
+            const auto usage = std::string("Usage: ") + command.synopsis + '\n';
             for (const auto* flag : {"-h", "--help"}) {
                 const auto output = suite.run_arguments(executable, {flag});
-                require(contents(output).find("Usage: mbspec-") == 0, "missing help on stdout");
+                require(contents(output) == usage, "wrong usage on stdout");
                 require(contents(output.parent_path() / "stderr.log").empty(), "unexpected help diagnostic");
             }
-            for (const auto& arguments : {std::vector<std::string>{}, std::vector<std::string>{"a", "b", "c"}}) {
-                const auto output = suite.run_arguments(executable, arguments, "Usage: mbspec-");
+            const auto check_bad_count = [&](const std::vector<std::string>& arguments) {
+                const std::string expected_count = command.config_only ? "1 positional argument" : "2 positional arguments";
+                const auto diagnostic = "Expected " + expected_count + ", got " +
+                                        std::to_string(arguments.size()) + ".\n" + usage;
+                const auto output = suite.run_arguments(executable, arguments, diagnostic);
                 require(contents(output).empty(), "unexpected output with incorrect arguments");
+                require(contents(output.parent_path() / "stderr.log") == diagnostic, "wrong argument diagnostic");
+            };
+            check_bad_count({});
+            if (command.config_only) {
+                check_bad_count({"a", "b"});
+            } else {
+                check_bad_count({"a"});
+                check_bad_count({"a", "b", "c"});
             }
         });
     }

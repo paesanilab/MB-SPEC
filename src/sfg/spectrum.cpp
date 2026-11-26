@@ -26,11 +26,17 @@ int main(int argc, char** argv)
     // Program setup and JSON configuration
     //----------------------------------------------------------------------------//
 
-    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<response.dat> <mb-spec.json>"))
-        return *status;
+    const auto exit_code = mbspec::check_arguments(argc, argv, {"response.dat", "mb-spec.json"});
+
+    if (exit_code.has_value()) {
+        return *exit_code;
+    }
+
+    const auto response_path = argv[1];
+    const auto config_path = argv[2];
 
     System sys;
-    sys.SetUpFromJson("SFG", argv[2]);
+    sys.SetUpFromJson("SFG", config_path);
 
     const double temperature = sys.GetTemperature();
     const double tau = sys.GetTau();
@@ -93,9 +99,9 @@ int main(int argc, char** argv)
     // Response input and time-grid validation
     //----------------------------------------------------------------------------//
 
-    std::ifstream infile(argv[1]);
+    std::ifstream infile(response_path);
     if (!infile) {
-        std::cerr << "could not open '" << argv[1] << "' for reading"
+        std::cerr << "could not open '" << response_path << "' for reading"
                   << std::endl;
         return EXIT_FAILURE;
     }

@@ -27,11 +27,17 @@ int main(int argc, char** argv)
     // Command-line input and configuration
     // -------------------------------------------------------------------------
 
-    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<response.dat> <mb-spec.json>"))
-        return *status;
+    const auto exit_code = mbspec::check_arguments(argc, argv, {"response.dat", "mb-spec.json"});
+
+    if (exit_code.has_value()) {
+        return *exit_code;
+    }
+
+    const auto response_path = argv[1];
+    const auto config_path = argv[2];
 
     System sys;
-    sys.SetUpFromJson("POWER", argv[2]);
+    sys.SetUpFromJson("POWER", config_path);
 
     // -------------------------------------------------------------------------
     // POWER spectrum settings and validation
@@ -77,7 +83,7 @@ int main(int argc, char** argv)
     // -------------------------------------------------------------------------
     mbspec::ResponseTable response;
     try {
-        response = mbspec::read_response(argv[1], max_int, 6);
+        response = mbspec::read_response(response_path, max_int, 6);
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return EXIT_FAILURE;
@@ -85,7 +91,7 @@ int main(int argc, char** argv)
     auto& corr = response.values;
     const size_t Ndata = corr.size();
     if (Ndata < 2) {
-        std::cerr << "response file '" << argv[1] << "' must contain at least 2 time points below POWER.int_max\n";
+        std::cerr << "response file '" << response_path << "' must contain at least 2 time points below POWER.int_max\n";
         return EXIT_FAILURE;
     }
     const double dt_ps = response.interval;

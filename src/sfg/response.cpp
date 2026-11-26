@@ -160,11 +160,17 @@ int main(int argc, char** argv)
     // Program setup and JSON configuration
     //----------------------------------------------------------------------------//
 
-    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<trajectory.lammpstrj> <mb-spec.json>"))
-        return *status;
+    const auto exit_code = mbspec::check_arguments(argc, argv, {"trajectory.lammpstrj", "mb-spec.json"});
+
+    if (exit_code.has_value()) {
+        return *exit_code;
+    }
+
+    const auto trajectory_path = argv[1];
+    const auto config_path = argv[2];
 
     System sys;
-    sys.SetUpFromJson("SFG", argv[argc - 1]);
+    sys.SetUpFromJson("SFG", config_path);
 
     const double zc1 = sys.GetZc1();
 
@@ -340,7 +346,7 @@ int main(int argc, char** argv)
     //----------------------------------------------------------------------------//
 
     try {
-        opt::read_lammpstrj(argv[1], frames, imcon, dump,
+        opt::read_lammpstrj(trajectory_path, frames, imcon, dump,
                             trajectory_duration_ps);
         std::cerr << " # Frames : " << frames.size() << std::endl;
     } catch (const std::exception& e) {

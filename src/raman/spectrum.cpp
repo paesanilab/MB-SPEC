@@ -37,11 +37,17 @@ int main(int argc, char** argv)
     // Program setup and JSON configuration
     //----------------------------------------------------------------------------//
 
-    if (const auto status = mbspec::check_arguments(argc, argv, 3, "<response.dat> <mb-spec.json>"))
-        return *status;
+    const auto exit_code = mbspec::check_arguments(argc, argv, {"response.dat", "mb-spec.json"});
+
+    if (exit_code.has_value()) {
+        return *exit_code;
+    }
+
+    const auto response_path = argv[1];
+    const auto config_path = argv[2];
 
     System sys;
-    sys.SetUpFromJson("RAMAN", argv[2]);
+    sys.SetUpFromJson("RAMAN", config_path);
 
     double T = sys.GetTemperature();
     double volume = sys.GetBoxVolume();
@@ -97,7 +103,7 @@ int main(int argc, char** argv)
 
     mbspec::ResponseTable response;
     try {
-        response = mbspec::read_response(argv[1], max_int, 9);
+        response = mbspec::read_response(response_path, max_int, 9);
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return EXIT_FAILURE;
@@ -105,7 +111,7 @@ int main(int argc, char** argv)
     auto& corr = response.values;
     const size_t n_response = corr.size();
     if (n_response < 4) {
-        std::cerr << "response file '" << argv[1] << "' must contain at least 4 time points below RAMAN.int_max\n";
+        std::cerr << "response file '" << response_path << "' must contain at least 4 time points below RAMAN.int_max\n";
         return EXIT_FAILURE;
     }
     const double dt = response.interval;

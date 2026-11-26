@@ -3,7 +3,7 @@
 `src/tools` provides the internal `libtools.a` library used by the IR, Raman,
 SFG, and power spectrum programs. It contains trajectory readers, configuration
 handling, geometry and numerical utilities, and the water dipole and
-polarizability models. It does not provide a standalone command-line program.
+polarizability models. 
 
 ## File overview
 
@@ -82,8 +82,7 @@ The TTM4 models use `ttm4-smear`, which in turn uses `gammq`. TTM4 model classes
 retain mutable work storage; use a separate instance for each concurrent
 worker. Dipole and polarizability response accessors require the associated
 model evaluation to have initialized that storage.
-The `dipind` accessors sum induced dipoles for the supplied system; their
-output is a dimer contribution only when the evaluated system is a dimer.
+The `dipind` accessors sum induced dipoles for the supplied system.
 
 ## Units and calling conventions
 
@@ -97,7 +96,7 @@ output is a dimer contribution only when the evaluated system is a dimer.
 - Nine-component polarizability tensors use row-major order:
   `xx, xy, xz, yx, yy, yz, zx, zy, zz`.
   `avila::alpha6` instead returns `xx, yy, zz, xy, xz, yz`. The Raman property
-  output uses `xx, xy, xz, yy, yz, zz`; these six-component layouts differ.
+  output uses `xx, xy, xz, yy, yz, zz`.
 - `dip_poly2b5::eval` and `alpha_el_poly2b3::eval` return polynomial values
   without the distance switch. Spectroscopy callers apply switching,
   periodic imaging, pair summation, and any induced-dipole replacement.
@@ -112,42 +111,37 @@ output is a dimer contribution only when the evaluated system is a dimer.
 
 ## Scientific and numerical limitations
 
-The built-in property surfaces are water-specific. External dipole definitions
+1. The built-in property surfaces are water-specific. External dipole definitions
 are determined by the trajectory producer; PS, LTP2011, and externally supplied
 permanent dipoles must not be treated as interchangeable without justification.
 The published MB-μ construction uses LTP2011 for its explicit one-body term
-[4]. The optional PS permanent term in SFG is a different model choice;
+[4]. The optional PS permanent term in SFG is a different model choice, and the
 PS-derived charges inside TTM4 induction serve a separate role.
 
-The internal cell-dependent TTM4 treatment uses only the diagonal cell lengths
+2. The internal cell-dependent TTM4 treatment uses only the diagonal cell lengths
 for minimum imaging and therefore assumes an orthorhombic cell, including
 cubic cells. Triclinic support in the shared trajectory reader does not extend
-to this model. It has no Ewald summation. Raman
-NB-containing modes are not validated for periodic bulk calculations. The word
-`periodic` in the filename does not establish a complete periodic electrostatic
-treatment.
-
-Gaussian smoothing excludes zero-frequency input and sets the zero-frequency
-output to zero. This changes the POWER zero-frequency value when smoothing is
-enabled.
+to this model. It has no Ewald summation. Raman NB-containing modes are not 
+validated for periodic bulk calculations. 
 
 ## Build and generated files
 
-`Makefile.am` defines `libtools.a`, its sources, and additional distribution
-files. The library is built as part of the repository build. The current matrix
-utility implementation requires Intel MKL's `mkl_lapacke.h` and LAPACKE
+1. `Makefile.am` defines `libtools.a`, its sources, and additional distribution
+files. The library is built as part of the repository build. 
+
+2. The current matrix utility implementation requires Intel MKL's `mkl_lapacke.h` and LAPACKE
 libraries. Configuration checks compilation and linkage of `LAPACKE_dgetrf`,
 `LAPACKE_dgetri`, and `LAPACKE_dsyev` and stops if they are unavailable.
 `--disable-mkl` is unsupported. Set `--with-mkl-cflags` and
 `--with-mkl-libs` when the installation differs from the default `/opt/intel`
-paths; see the root README for an example. Build configuration supplies
-`MKL_CFLAGS` and `MKL_LIBS` to the spectroscopy programs using this library.
+paths. Build configuration supplies `MKL_CFLAGS` and `MKL_LIBS` to the 
+spectroscopy programs using this library.
 A generic LAPACKE installation alone does not provide the named MKL header.
 
-`Makefile.in`, `Makefile`, `.deps/`, `*.o`, and `libtools.a` are generated build
+3. `Makefile.in`, `Makefile`, `.deps/`, `*.o`, and `libtools.a` are generated build
 files.
 
-The large `poly2b5.cpp` and `poly-l-2b3.cpp` files contain explicit polynomial
+4. The large `poly2b5.cpp` and `poly-l-2b3.cpp` files contain explicit polynomial
 basis expressions; their fitted coefficients reside in the corresponding
 `dip_poly2b5.cpp` and `alpha-el-poly2b3.cpp` model files.
 

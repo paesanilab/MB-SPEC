@@ -70,6 +70,8 @@ Needs velocities.
 
 ## References
 
+The following publications established the methods implemented in MB-SPEC or used the software in their analyses.
+
 1. Medders and Paesani, J. Chem. Theory Comput. 9, 4844 (2013)
 2. Medders and Paesani, J. Chem. Theory Comput. 11, 1145 (2015)
 3. Medders and Paesani, J. Chem. Phys. 142, 212411 (2015)

@@ -181,11 +181,6 @@ $$
 
 For dipole origin $m$ and later polarizability frame $n$,
 
-$$
-B_{ab}^{mn}=\frac12\left[\mu_{a,k}^{m}\alpha_{b,ij}^{n}
-+\mu_{a,k'}^{m}\alpha_{b,i'j'}^{n}\right].
-$$
-
 ```math
 B_{ab}^{mn} = \frac{1}{2}\bigl[ \mu_{a,k}^{m}\alpha_{b,ij}^{n} + \mu_{a,k'}^{m}\alpha_{b,i'j'}^{n} \bigr].
 ```
@@ -202,6 +197,13 @@ For example, `xxz` uses $[\mu_z\alpha_{xx}+\mu_z\alpha_{yy}]/2$.
 ### Truncated cross-correlation partners
 
 For each origin $m$ and central molecule $a$ with $g_a^m\ne0$, candidates $b\ne a$ first require $r_{ab}(m)\lt 2R$, where $R$ is the `cross_correlation_cutoff`. A partner is retained if
+
+```math
+\overline{r}_{ab,m} = \frac{1}{Q}
+\sum_{\substack{q=0,h,2h,\ldots \\ m+q\le L_m}}
+\left|\mathbf{r}_a(m)-\mathbf{r}_b(m+q)\right| \lt R,
+\qquad L_m=\min(N-1,m+N_{\mathrm{lag}}).
+```
 
 $$
 \overline r_{ab,m}=\frac1Q\sum_{\substack{q=0,h,2h,\ldots\\m+q\le L_m}}

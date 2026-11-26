@@ -3,6 +3,8 @@
 MB-SPEC calculates vibrational spectra from molecular dynamics trajectories, including those generated with MB-pol and other MB-nrg models. It supports infrared (IR), Raman, sum-frequency generation (SFG), and velocity power spectra. 
 For water, MB-SPEC includes built-in many-body dipole moment (MB-$`\mu`$) and polarizability (MB-$`\alpha`$) surfaces that can be applied to compatible trajectories generated with any potential energy surface.
 
+Release status: MB-SPEC is currently in beta. We plan to improve the build process in an upcoming release.
+
 ## Build
 
 MB-SPEC requires Autotools, a C++ compiler with OpenMP support, GSL, and Intel
@@ -67,6 +69,10 @@ and the refractive index files in `src/sfg/fresnel_factors/`.
 ```
 
 Needs velocities. 
+
+## Scientific Limitation
+
+Use only the 1b and 1b+2b polarizability surfaces for periodic bulk simulations. The nb, 1b+nb, and 1b+2b+nb modes currently lack Ewald summation, and have not been validated for periodic bulk simulations. We aim to address this limitation in a future release.
 
 ## References
 

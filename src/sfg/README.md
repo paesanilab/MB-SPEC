@@ -178,10 +178,9 @@ $$
 
 For dipole origin $m$ and later polarizability frame $n$,
 
-$$
-B_{ab}^{mn}=\frac12\left[\mu_{a,k}^{m}\alpha_{b,ij}^{n}
-+\mu_{a,k'}^{m}\alpha_{b,i'j'}^{n}\right].
-$$
+```math
+B_{ab}^{mn} = \frac{1}{2}\bigl[ \mu_{a,k}^{m}\alpha_{b,ij}^{n} + \mu_{a,k'}^{m}\alpha_{b,i'j'}^{n} \bigr].
+```
 
 | Component | $(k,ij)$ | $(k',i'j')$ |
 |---|---|---|
@@ -196,11 +195,12 @@ For example, `xxz` uses $[\mu_z\alpha_{xx}+\mu_z\alpha_{yy}]/2$.
 
 For each origin $m$ and central molecule $a$ with $g_a^m\ne0$, candidates $b\ne a$ first require $r_{ab}(m)\lt 2R$, where $R$ is the `cross_correlation_cutoff`. A partner is retained if
 
-$$
-\overline r_{ab,m}=\frac1Q\sum_{\substack{q=0,h,2h,\ldots\\m+q\le L_m}}
-|\mathbf r_a(m)-\mathbf r_b(m+q)|\lt R,
+```math
+\overline{r}_{ab,m} = \frac{1}{Q}
+\sum_{\substack{q=0,h,2h,\ldots \\ m+q\le L_m}}
+\left|\mathbf{r}_a(m)-\mathbf{r}_b(m+q)\right| \lt R,
 \qquad L_m=\min(N-1,m+N_{\mathrm{lag}}).
-$$
+```
 
 Here, $h$ is the `cross_correlation_sampling_stride` and $Q$ counts sampled terms. The central oxygen is held at time $m$. Distances are minimum-imaged using the cell at the origin frame. Holding the central oxygen fixed defines an asymmetric, time-dependent partner selection and truncates the full system correlation.
 
@@ -295,7 +295,7 @@ When spectral smoothing is enabled, it is applied separately to the real and ima
 The fourth output column equals the sum of squares of the reported components. 
 Fresnel post-processing reads the complex components and ignores the fourth column.
 
-There is no quantum correction, temperature prefactor, or absolute susceptibility conversion. Increasing the requested grid density does not extend the independent physical frequency range:
+The time step sets the independent physical frequency range through the Nyquist wavenumber.
 
 $$
 \widetilde\nu_{\mathrm{Nyquist}}=\frac1{2c\Delta t}.
@@ -328,7 +328,7 @@ $$
  e^{-i\omega t}\langle\alpha_{ij}(t)\mu_k(0)\rangle\right].
 $$
 
-The indices $i$, $j$, and $k$ refer to the sum-frequency, visible, and infrared polarizations, respectively. MB-SPEC does not implement this absolute prefactor or an unrestricted total dipole–polarizability correlation. `SFG.temperature` is required to be positive by the spectrum executable but does not enter its numerical transform.
+The indices $i$, $j$, and $k$ refer to the sum-frequency, visible, and infrared polarizations, respectively. MB-SPEC outputs a reduced, truncated response without a quantum correction, temperature prefactor, or absolute susceptibility conversion. The spectrum executable validates `SFG.temperature` and leaves it out of the numerical transform.
 
 ## Fresnel post-processing
 

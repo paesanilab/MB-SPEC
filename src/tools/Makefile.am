@@ -14,6 +14,7 @@ test_poly2b5_LDADD = libpoly.a
 
 EXTRA_DIST = \
     README.md \
+    README-ind-dip-pol.md \
     cli.h \
     json/json.h \
     macros.h \

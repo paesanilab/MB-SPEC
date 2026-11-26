@@ -169,6 +169,10 @@ template for recognized keys. A single file can contain several workflow
 sections. IR, Raman, and Power spectrum inputs require two finite numeric
 columns and an evenly spaced time grid.
 
+The [TTM4-Ind model guide](src/tools/README-ind-dip-pol.md) explains how MB-SPEC
+calculates induction contributions to the dipole moment and polarizability of water.
+Example LAMMPS and XYZ trajectories are available in [the test fixtures](src/unittests/inputs/).
+
 ## IR
 
 ```bash
@@ -213,9 +217,38 @@ and the water refractive-index tables. See [Fresnel post-processing](src/sfg/REA
 Power takes LAMMPS dump files with `vx`, `vy`, and `vz` columns or XYZ files
 whose atom rows contain velocities. See the [power spectrum guide](src/power/README.md).
 
+## Scientific limitations
+
+Use the `1b` or `1b+2b` polarizability surfaces for periodic bulk simulations.
+The `nb`, `1b+nb`, and `1b+2b+nb` modes lack Ewald summation and still need
+validation for periodic bulk simulations. See the [Raman guide](src/raman/README.md#scientific-limitations).
+
 ## References
+
+The following publications describe the theoretical foundations of MB-SPEC and selected applications in vibrational spectroscopy.
 
 1. Medders and Paesani, J. Chem. Theory Comput. 9, 4844 (2013)
 2. Medders and Paesani, J. Chem. Theory Comput. 11, 1145 (2015)
 3. Medders and Paesani, J. Chem. Phys. 142, 212411 (2015)
 4. Medders and Paesani, J. Am. Chem. Soc. 138, 3912 (2016)
+5. Straight and Paesani, J. Phys. Chem. B 120, 8359 (2016)
+6. Moberg, Straight, Knight, and Paesani, J. Phys. Chem. Lett. 8, 2579 (2017)
+7. Reddy, Moberg, Straight, and Paesani, J. Chem. Phys. 147, 244504 (2017)
+8. Moberg, Straight, and Paesani, J. Phys. Chem. B 122, 4356 (2018)
+9. Moberg, Sharp, and Paesani, J. Phys. Chem. B 122, 10572 (2018)
+10. Hunter, Shakib, and Paesani, J. Phys. Chem. B 122, 10754 (2018)
+11. Reddy, Thiraux, Rudd, Lin, Adel, Joutsuka, Geiger, Allen, Morita, and Paesani, Chem 4, 1629 (2018)
+12. Sengupta, Moberg, Paesani, and Tyrode, J. Phys. Chem. Lett. 9, 6744 (2018)
+13. Ohno, Wang, Paesani, Skinner, and Geiger, J. Phys. Chem. A 122, 4457 (2018)
+14. Sun, Tang, Imoto, Moberg, Ohto, Paesani, Bonn, Backus, and Nagata, Phys. Rev. Lett. 121, 246101 (2018)
+15. Hudait, Moberg, Qiu, Odendahla, Paesani, and Molinero, Proc. Natl. Acad. Sci. U.S.A. 115, 8266 (2018)
+16. Moberg, Li, Reddy, and Paesani, J. Chem. Phys. 150, 034701 (2019)
+17. Moberg, Becker, Dierking, Zurheide, Bandow, Buck, Hudait, Molinero, Paesania, and Zeuch, Proc. Natl. Acad. Sci. U.S.A. 116, 24413 (2019)
+18. Rashmi and Paesani, J. Am. Chem. Soc. 147, 1903 (2025)
+19. Rashmi, Balogun, Azom, Agnew, Kumar, and Paesani, ACS Nano 19, 4876 (2025)
+20. Agnew, Savoj, Rashmi, Savala, and Paesani, J. Phys. Chem. B 129, 6584 (2025)
+21. Rashmi, Savala, Agnew, Savoj, and Paesani, J. Phys. Chem. B 129, 7301 (2025)
+22. Dick, Rashmi, Agnew, Saha, Zhu, Kirchner, and Paesani, ACS Nano 20, 1304 (2026)
+23. Balogun, Rashmi, Azom, Kumar, and Paesani, J. Phys. Chem. Lett. 17, 2464 (2026)
+24. Rashmi, Chiang, Nagata, Bonn, and Paesani, J. Phys. Chem. Lett. 17 3013 (2026)
+25. Solomon, Rashmi, Zhou, and Paesani, J. Phys. Chem. A 130, 6933 (2026)

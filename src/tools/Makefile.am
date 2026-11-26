@@ -4,13 +4,13 @@ noinst_LIBRARIES = libtools.a
 
 EXTRA_DIST = \
     README.md \
+    README-ind-dip-pol.md \
     json/json.h \
     macros.h \
     struct-lammpstrj-frame.h \
     struct-sfg-pols.h
 
-AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/tools \
-	   $(MKL_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/tools $(MKL_CFLAGS)
 AM_CXXFLAGS = $(CXX_FLAGS) -std=c++11
 
 libtools_a_SOURCES = constants.h \

@@ -1,7 +1,5 @@
 SUBDIRS = tools infrared raman sfg power unittests .
 
-EXTRA_DIST = README-ind-dip-pol.md
-
 AM_CPPFLAGS = \
     -I$(top_srcdir)/src \
     -I$(top_srcdir)/src/tools \

@@ -205,12 +205,6 @@ For each origin $m$ and central molecule $a$ with $g_a^m\ne0$, candidates $b\ne 
 \qquad L_m=\min(N-1,m+N_{\mathrm{lag}}).
 ```
 
-$$
-\overline r_{ab,m}=\frac1Q\sum_{\substack{q=0,h,2h,\ldots\\m+q\le L_m}}
-|\mathbf r_a(m)-\mathbf r_b(m+q)|\lt R,
-\qquad L_m=\min(N-1,m+N_{\mathrm{lag}}).
-$$
-
 Here, $h$ is the `cross_correlation_sampling_stride` and $Q$ counts sampled terms. The central oxygen is held at time $m$. Distances are minimum-imaged using the cell at the origin frame. Holding the central oxygen fixed defines an asymmetric, time-dependent partner selection and truncates the full system correlation.
 
 ### Accumulation and normalization
@@ -281,7 +275,7 @@ A_s(\nu)=\sum_{n=1}^{N_T-2}\widehat C_n\sin(2\pi\nu t_n).
 $$
 
 where $T = $ `spectrum_transform_time_ps`.
-The final otherwise eligible sample is excluded. For $K =$ `spectrum_num_wavenumbers`,
+For $K =$ `spectrum_num_wavenumbers`,
 
 $$
 \widetilde\nu_k=\frac{k\widetilde\nu_{\max}}{K-1},\qquad
@@ -302,13 +296,6 @@ $$
 
 When spectral smoothing is enabled, it is applied separately to the real and imaginary components before the squared magnitude is calculated. 
 The fourth output column equals the sum of squares of the reported components. 
-Fresnel post-processing reads the complex components and ignores the fourth column.
-
-There is no quantum correction, temperature prefactor, or absolute susceptibility conversion. Increasing the requested grid density does not extend the independent physical frequency range:
-
-$$
-\widetilde\nu_{\mathrm{Nyquist}}=\frac1{2c\Delta t}.
-$$
 
 
 ### Gaussian smoothing
@@ -325,11 +312,11 @@ g_j=\frac{\exp\left[-(j-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}
 {\sum_{m=0}^{K-1}\exp\left[-(m-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}.
 $$
 
-The Gaussian is truncated at three standard deviations. Only positive-frequency points contribute to the convolution, and the available weights are renormalized at each boundary. The shared smoothing routine sets the zero-frequency output to zero. The unsmoothed SFG signal is already zero at zero frequency. Smoothing a completed spectrum is distinct from damping its time correlation.
+The Gaussian is truncated at three standard deviations. 
 
 ### Relation to the literature
 
-The resonant SFG expression in Medders and Paesani [3, Eq. 1] is
+The resonant SFG expression  is
 
 $$
 \mathrm{Im}\chi_{ijk}^{(2,R)}(\omega)=
@@ -337,7 +324,9 @@ $$
  e^{-i\omega t}\langle\alpha_{ij}(t)\mu_k(0)\rangle\right].
 $$
 
-The indices $i$, $j$, and $k$ refer to the sum-frequency, visible, and infrared polarizations, respectively. MB-SPEC does not implement this absolute prefactor or an unrestricted total dipole–polarizability correlation. `SFG.temperature` is required to be positive by the spectrum executable but does not enter its numerical transform.
+The indices $i$, $j$, and $k$ refer to the sum-frequency, visible, and infrared polarizations, respectively. 
+MB-SPEC does not implement this absolute prefactor or an unrestricted total dipole–polarizability correlation. 
+There is no quantum correction, temperature prefactor, or absolute susceptibility conversion. 
 
 ## Fresnel post-processing
 

@@ -111,14 +111,14 @@ The `dipind` accessors sum induced dipoles for the supplied system.
 
 ## Scientific and numerical limitations
 
-1. The built-in property surfaces are water-specific. External dipole definitions
+- The built-in property surfaces are water-specific. External dipole definitions
 are determined by the trajectory producer; PS, LTP2011, and externally supplied
 permanent dipoles must not be treated as interchangeable without justification.
 The published MB-μ construction uses LTP2011 for its explicit one-body term
 [4]. The optional PS permanent term in SFG is a different model choice, and the
 PS-derived charges inside TTM4 induction serve a separate role.
 
-2. The internal cell-dependent TTM4 treatment uses only the diagonal cell lengths
+- The internal cell-dependent TTM4 treatment uses only the diagonal cell lengths
 for minimum imaging and therefore assumes an orthorhombic cell, including
 cubic cells. Triclinic support in the shared trajectory reader does not extend
 to this model. It has no Ewald summation. Raman NB-containing modes are not 
@@ -126,10 +126,10 @@ validated for periodic bulk calculations.
 
 ## Build and generated files
 
-1. `Makefile.am` defines `libtools.a`, its sources, and additional distribution
+- `Makefile.am` defines `libtools.a`, its sources, and additional distribution
 files. The library is built as part of the repository build. 
 
-2. The current matrix utility implementation requires Intel MKL's `mkl_lapacke.h` and LAPACKE
+- The current matrix utility implementation requires Intel MKL's `mkl_lapacke.h` and LAPACKE
 libraries. Configuration checks compilation and linkage of `LAPACKE_dgetrf`,
 `LAPACKE_dgetri`, and `LAPACKE_dsyev` and stops if they are unavailable.
 `--disable-mkl` is unsupported. Set `--with-mkl-cflags` and
@@ -138,10 +138,10 @@ paths. Build configuration supplies `MKL_CFLAGS` and `MKL_LIBS` to the
 spectroscopy programs using this library.
 A generic LAPACKE installation alone does not provide the named MKL header.
 
-3. `Makefile.in`, `Makefile`, `.deps/`, `*.o`, and `libtools.a` are generated build
+- `Makefile.in`, `Makefile`, `.deps/`, `*.o`, and `libtools.a` are generated build
 files.
 
-4. The large `poly2b5.cpp` and `poly-l-2b3.cpp` files contain explicit polynomial
+- The large `poly2b5.cpp` and `poly-l-2b3.cpp` files contain explicit polynomial
 basis expressions; their fitted coefficients reside in the corresponding
 `dip_poly2b5.cpp` and `alpha-el-poly2b3.cpp` model files.
 

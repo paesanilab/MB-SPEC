@@ -145,25 +145,10 @@ files.
 basis expressions; their fitted coefficients reside in the corresponding
 `dip_poly2b5.cpp` and `alpha-el-poly2b3.cpp` model files.
 
-## Scientific references
+## References
 
-1. H. Partridge and D. W. Schwenke, *The determination of an accurate isotope
-   dependent potential energy surface for water from extensive ab initio
-   calculations and experimental data*, J. Chem. Phys. **106**, 4618–4639
-   (1997). [Paper](https://history.arc.nasa.gov/hist_pdfs/awards/hjaa_1999.pdf).
-2. L. Lodi, J. Tennyson, and O. L. Polyansky, *A global, high accuracy ab initio
-   dipole moment surface for the electronic ground state of the water
-   molecule*, J. Chem. Phys. **135**, 034113 (2011).
-   [DOI: 10.1063/1.3604934](https://doi.org/10.1063/1.3604934).
-3. G. Avila, *Ab initio dipole polarizability surfaces of water molecule:
-   Static and dynamic at 514.5 nm*, J. Chem. Phys. **122**, 144310 (2005).
-   [DOI: 10.1063/1.1867437](https://doi.org/10.1063/1.1867437).
-4. G. R. Medders and F. Paesani, *Infrared and Raman Spectroscopy of Liquid
-   Water through “First-Principles” Many-Body Molecular Dynamics*, J. Chem.
-   Theory Comput. **11**, 1145–1154 (2015). Defines the MB-μ and MB-α
-   constructions, including their TTM4-Ind contributions.
-   [DOI: 10.1021/ct501131j](https://doi.org/10.1021/ct501131j).
-5. C. J. Burnham, D. J. Anick, P. K. Mankoo, and G. F. Reiter, *The vibrational
-   proton potential in bulk liquid water and ice*, J. Chem. Phys. **128**,
-   154519 (2008). Introduces TTM4-F.
-   [DOI: 10.1063/1.2895750](https://doi.org/10.1063/1.2895750).
+1. Partridge and Schwenke, J. Chem. Phys. 106, 4618 (1997)
+2. Lodi, Tennyson, and Polyansky, J. Chem. Phys. 135, 034113 (2011)
+3. G. Avila, J. Chem. Phys. 122, 144310 (2005)
+4. G. R. Medders and F. Paesani, J. Chem. Theory Comput. 11, 1145 (2015)
+5. C. J. Burnham, D. J. Anick, P. K. Mankoo, and G. F. Reiter, J. Chem. Phys. 128, 154519 (2008).

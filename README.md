@@ -22,6 +22,9 @@ Use `OMP_NUM_THREADS` to set parallelism for stages that support OpenMP.
 The trajectory may be LAMMPS or `.xyz` format.
 All variables for `INFRARED`, `RAMAN`, `SFG`, and `POWER` are specified in their respective 
 JSON files in `json_template/`
+Each module’s source directory contains a README that describes its variables and equations in detail (e.g., `src/infrared/README.md`).
+In addition, `src/README-ind-dip-pol.md` describes the TTM4-Ind model and 
+how MB-SPEC uses it to calculate induction contributions to the dipole moment and polarizability of water.
 
 ## IR
 
@@ -31,7 +34,7 @@ JSON files in `json_template/`
 ./src/ir/spectrum response.dat json_template/ir.json > spectrum.dat
 ```
 
-Needs coordinates
+Needs coordinates (and dipoles if external).
 
 ## Raman
 
@@ -41,7 +44,7 @@ Needs coordinates
 ./src/raman/spectrum response.dat json_template/raman.json > spectrum.dat
 ```
 
-Needs coordinates
+Needs coordinates.
 
 ## SFG
 
@@ -51,7 +54,7 @@ Needs coordinates
 ./src/sfg/fresnel src/sfg/fresnel.json
 ```
 
-Needs coordinates and dipoles
+Needs coordinates (and dipoles if external).
 
 The fresnel factor calculation also requires the three SFG tensor component files (xxz.dat, zzz.dat, and xzx.dat) 
 and the refractive index files in `src/sfg/fresnel_factors/`. 

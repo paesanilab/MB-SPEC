@@ -70,12 +70,16 @@ CXX=clang++-21 sh src/unittests/build-historical.sh "$historical_work/master"
 make -C src/unittests check-historical
 src/unittests/check-historical "$historical_work/master/src"
 src/unittests/check-historical --export-references "$historical_work/master/src" "$historical_work/references"
-diff -r -x PROVENANCE src/unittests/historical/references "$historical_work/references"
+src/unittests/check-historical --export-references "$historical_work/master/src" "$historical_work/repeated-references"
+diff -r "$historical_work/references" "$historical_work/repeated-references"
+diff -r -x PROVENANCE -x 'fresnel-*.dat' src/unittests/historical/references "$historical_work/references"
 ```
 
-The export directory must be new. It receives the raw outputs after all four
-workflows succeed. The final command checks byte-for-byte reproduction of the
-20 saved tables, as CI does with the pinned toolchain.
+Each export directory must be new. It receives the raw outputs after all four
+workflows succeed. CI compares two exports from the same host byte for byte
+and checks all 20 saved tables numerically. The four Fresnel tables are printed
+at full precision and can differ in the last digits across hosts. The final
+command checks the remaining 16 saved tables byte for byte.
 
 Use Clang for the historical build. The original C++11 LAMMPS parser depends
 on operand evaluation order when assigning column indices. Clang evaluates

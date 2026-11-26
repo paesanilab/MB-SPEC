@@ -197,9 +197,12 @@ jobs:
           ./configure --with-lapack=mkl --enable-werror
           make -C src/unittests check-historical
           src/unittests/check-historical historical-master/src
-          reference_output="$(mktemp -d)/references"
-          src/unittests/check-historical --export-references historical-master/src "$reference_output"
-          diff -r -x PROVENANCE src/unittests/historical/references "$reference_output"
+          reference_work=$(mktemp -d)
+          src/unittests/check-historical --export-references historical-master/src "$reference_work/references"
+          src/unittests/check-historical --export-references historical-master/src "$reference_work/repeated-references"
+          diff -r "$reference_work/references" "$reference_work/repeated-references"
+          # The full-precision Fresnel tables use the numerical comparison above across hosts.
+          diff -r -x PROVENANCE -x 'fresnel-*.dat' src/unittests/historical/references "$reference_work/references"
       - name: Upload reference diagnostics
         if: failure()
         uses: actions/upload-artifact@v7

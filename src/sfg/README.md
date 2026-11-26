@@ -93,33 +93,38 @@ do not supply the time axis.
 
 ## Molecular properties
 
-Before explicit pair corrections,
+SFG uses the dipole moment and polarizability tensor of each water molecule
+in the laboratory Cartesian frame. The one-body dipole
+$\boldsymbol\mu_a^{\mathrm{perm}}$ comes from the trajectory, or from the
+internal PS surface when `use_ps_dipole=true`; there is no internal LTP2011
+option. The induced dipole $\boldsymbol\mu_a^{\mathrm{ind}}$ comes from the
+trajectory. The one-body polarizability is the Avila tensor.
 
-$$
-\mu_{a,k}=I_{\mathrm{1B}}\mu_{a,k}^{\mathrm{perm}}
-+I_{\mathrm{NB}}\mu_{a,k}^{\mathrm{ind}},
-$$
+### Available water decompositions
 
-$$
-\alpha_{a,ij}=\alpha_{a,ij}^{\mathrm{Avila,1B}}.
-$$
+For molecule $a$, the supported dipole modes are
 
-The permanent term comes from the trajectory or internal PS surface when
-`use_ps_dipole=true`; there is no internal LTP2011 option. The indicators
-$I_{\mathrm{1B}}$ and $I_{\mathrm{NB}}$ select the base contributions:
-
-| `dipole_mb` | $I_{\mathrm{1B}}$ | $I_{\mathrm{NB}}$ | Unswitched pair term added through allocation below |
-|---|---|---|---|
-| `1b` | 1 | 0 | None |
-| `nb` | 0 | 1 | None |
-| `1b+nb` | 1 | 1 | None |
-| `1b+2b` | 1 | 0 | $\boldsymbol\mu_{ab}^{\mathrm{2B,poly}}$ |
-| `1b+2b+nb` | 1 | 1 | $\boldsymbol\mu_{ab}^{\mathrm{2B,poly}}-\boldsymbol\mu_{ab}^{\mathrm{2B,ind}}$ |
-
-| `polarizability_mb` | Base tensor | Unswitched pair term added through allocation below |
+| `dipole_mb` | Molecular dipole | Contributions |
 |---|---|---|
-| `1b` | Avila one-body | None |
-| `1b+2b` | Avila one-body | $\boldsymbol\alpha_{ab}^{\mathrm{2B,poly}}+\boldsymbol\alpha_{ab}^{\mathrm{2B,ind}}$ |
+| `1b` | $\boldsymbol\mu_a^{\mathrm{perm}}$ | Permanent |
+| `nb` | $\boldsymbol\mu_a^{\mathrm{ind}}$ | Induced |
+| `1b+nb` | $\boldsymbol\mu_a^{\mathrm{perm}}+\boldsymbol\mu_a^{\mathrm{ind}}$ | Permanent + induced |
+| `1b+2b` | $\boldsymbol\mu_a^{\mathrm{perm}}+P_{\mu,a}$ | Permanent + allocated switched 2B polynomial |
+| `1b+2b+nb` | $\boldsymbol\mu_a^{\mathrm{perm}}+\boldsymbol\mu_a^{\mathrm{ind}}+P_{\mu,a}-I_{\mu,a}$ | Permanent + induced; replace allocated switched induced-dimer term with polynomial |
+
+The supported polarizability modes are
+
+| `polarizability_mb` | Molecular tensor | Contributions |
+|---|---|---|
+| `1b` | $\boldsymbol\alpha_a^{\mathrm{Avila,1B}}$ | Avila one-body |
+| `1b+2b` | $\boldsymbol\alpha_a^{\mathrm{Avila,1B}}+P_{\alpha,a}+J_{\alpha,a}$ | Avila one-body + allocated switched polynomial and pair induction |
+
+Here, $P_{\mu,a}$ and $I_{\mu,a}$ are the switched MB-mu polynomial and TTM4
+induced-dimer dipoles allocated to molecule $a$. Similarly, $P_{\alpha,a}$
+and $J_{\alpha,a}$ are the allocated switched MB-alpha polynomial correction
+and TTM4 pair induction increment. The allocation is defined below.
+There is no internal nonadditive-polarizability mode. Both external dipole
+triplets remain required for every decomposition.
 
 The polarizability induction increment is evaluated for an isolated dimer:
 
@@ -130,24 +135,39 @@ $$
 -\boldsymbol\alpha^{\mathrm{TTM4}}(b).
 $$
 
-The monomer subtraction avoids counting one-body polarizabilities twice.
-Isolated TTM monomer tensors are cached once per frame. The polynomial is an
-additive correction to this TTM pair increment.
-There is no internal nonadditive-polarizability mode. Both external dipole
-triplets remain required for every decomposition.
+Subtracting the isolated monomer tensors avoids counting one-body
+polarizabilities twice. These monomer tensors are cached once per frame.
+The polynomial is an additive correction to this TTM pair increment, so
+`1b+2b` includes both terms and excludes higher-body induction.
 
-For an eligible pair $a,b$, the switched correction allocated to molecule $a$ is
+### Molecular allocation of pair contributions
+
+Each pair contribution is switched by its O–O distance and divided between
+the two molecules using the magnitudes of their interface weights $g_a$ and
+$g_b$ (defined in the correlation section). For an eligible pair $a,b$, the
+correction allocated to molecule $a$ is
 
 $$
-\Delta X_{a(ab)}=s(r_{ab})\frac{|g_a|}{|g_a|+|g_b|}\Delta X_{ab}^{\mathrm{2B}},
-\qquad X\in\{\mu_k,\mu_{k'},\alpha_{ij},\alpha_{i'j'}\}.
+\Delta X_{a(ab)}=s(r_{ab})\frac{|g_a|}{|g_a|+|g_b|}\Delta X_{ab}^{\mathrm{2B}}.
 $$
 
-Allocation to $b$ is analogous; pairs with zero denominator are skipped. For dipole `1b+2b+nb`, the pair term is the MB-mu polynomial minus the TTM4 induced-dimer contribution. For polarizability `1b+2b`, it is the sum of the MB-alpha polynomial correction and the TTM pair increment. Both use the same switch and molecular allocation. For eligible pairs, the two allocated contributions sum to the switched pair tensor before the correlation applies additional interface weights. The allocation is an existing molecular-response convention; conservation of the pair tensor alone does not establish a unique interfacial response.
+This rule applies to each dipole or polarizability component used in the
+correlation: $X\in\{\mu_k,\mu_{k'},\alpha_{ij},\alpha_{i'j'}\}$.
+The terms $P_{\mu,a}$, $I_{\mu,a}$, $P_{\alpha,a}$, and $J_{\alpha,a}$
+sum these allocations over eligible partners for their respective polynomial
+or induction contributions.
+
+Allocation to $b$ uses $|g_b|$ in the numerator; pairs with zero denominator
+are skipped. Both properties use the same switch and allocation. For each
+eligible pair, the two allocations sum to the switched pair contribution
+before the correlation applies additional interface weights. This allocation
+is an existing molecular-response convention; conserving the pair tensor
+alone does not establish a unique interfacial response.
 
 ### Two-body switching
 
-The explicit two-body switching function is
+The switching function depends on the O–O distance $r$, with inner radius
+$R_i$ (`cutoff_1`) and outer radius $R_o$ (`cutoff_2`):
 
 $$
 s(r)=\begin{cases}
@@ -158,11 +178,10 @@ s(r)=\begin{cases}
 \qquad x=\frac{r-R_i}{R_o-R_i}.
 $$
 
-The switching function vanishes at the outer radius. For polarizability
-`1b+2b`, both polynomial and pair induction have full weight below the inner
-radius (default 5.5 Å), taper smoothly to zero at the outer radius (default
-7.5 Å), and are omitted at and beyond that radius. 
-It excludes higher-body induction.
+The default radii are 5.5 and 7.5 Å. In polarizability `1b+2b`, the same
+switch multiplies both the polynomial and the pair induction increment:
+both have full weight below the inner radius, taper smoothly to zero at the
+outer radius, and are omitted at and beyond that radius.
 
 ## Dipole-polarizability correlation
 

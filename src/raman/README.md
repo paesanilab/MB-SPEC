@@ -349,7 +349,7 @@ g_j=\frac{\exp[-(j-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)]}
 {\sum_{m=0}^{K-1}\exp[-(m-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)]}.
 $$
 
-The Gaussian is truncated at three standard deviations. 
+The Gaussian is truncated at three standard deviations.
 
 ## Scientific limitations
 

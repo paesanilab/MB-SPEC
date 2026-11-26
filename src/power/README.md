@@ -38,7 +38,7 @@ It does not cancel from the response file.
 
 ## JSON options
 
-Put all settings inside `POWER`. 
+Put all settings inside `POWER`.
 **Remove the `//` comments before saving this JSONC example as an input file.**
 
 ```jsonc

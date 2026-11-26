@@ -1,11 +1,17 @@
+#include "config.h"
+
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 #include "mat_tools.h"
+#ifdef USE_MKL
 #include <mkl_lapacke.h>
-//#include "mkl_lapacke.h"
+#else
+#include <lapacke.h>
+#endif
 
 extern "C" {
     // LU decomoposition of a general matrix
@@ -28,28 +34,18 @@ double sgn(const double& x)
 
 void invert(int N, double* A)
 {
-    int *IPIV = new int[N+1];
-    int LWORK = N*N;
-    double *WORK = new double[LWORK];
-    //int INFO;
+    lapack_int n = N;
+    std::vector<lapack_int> ipiv(N);
 
-    lapack_int n = N, info;
-    info = LAPACKE_dgetrf(LAPACK_ROW_MAJOR, n,n,A,n,IPIV);
+    lapack_int info = LAPACKE_dgetrf(LAPACK_ROW_MAJOR, n, n, A, n, ipiv.data());
     if (info != 0) {
-        delete[] IPIV;
-        delete[] WORK;
         throw std::runtime_error("LAPACKE_dgetrf failed with info = " + std::to_string(info));
     }
 
-    info = LAPACKE_dgetri(LAPACK_ROW_MAJOR, n, A, n,IPIV);
+    info = LAPACKE_dgetri(LAPACK_ROW_MAJOR, n, A, n, ipiv.data());
     if (info != 0) {
-        delete[] IPIV;
-        delete[] WORK;
         throw std::runtime_error("LAPACKE_dgetri failed with info = " + std::to_string(info));
     }
-
-    delete[] IPIV;
-    delete[] WORK;
 }
 
 int eigenvalues(size_t N, double* H, double* eig)

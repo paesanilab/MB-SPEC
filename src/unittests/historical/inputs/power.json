@@ -1,0 +1,11 @@
+{
+  "POWER": {
+    "dump_frequency": 0.25,
+    "skip_initial_atoms": 0,
+    "trajectory_duration_ps": 0.0,
+    "subtract_mean_velocity": false,
+    "int_max": 1.6,
+    "spectrum_transform_time_ps": 1.5,
+    "tau": 0.0
+  }
+}

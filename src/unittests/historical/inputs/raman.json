@@ -1,0 +1,19 @@
+{
+  "RAMAN": {
+    "box": [0.0, 20.0, 0.0, 20.0, 0.0, 20.0],
+    "imcon": 2,
+    "dump_frequency": 0.25,
+    "skip_initial_atoms": 0,
+    "trajectory_duration_ps": 0.0,
+    "polarizability_mb": "1b+2b+nb",
+    "cutoff_1": 5.5,
+    "cutoff_2": 7.5,
+    "raman_response": "depolarized",
+    "subtract_mean_polarizability": true,
+    "int_max": 1.6,
+    "temperature": 300.0,
+    "spectrum_transform_time_ps": 1.5,
+    "tau": 0.0,
+    "bose_einstein_correction": true
+  }
+}

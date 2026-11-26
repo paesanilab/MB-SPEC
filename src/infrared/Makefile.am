@@ -1,23 +1,12 @@
-AM_CXXFLAGS = $(CXX_FLAGS) -std=c++11
+include $(top_srcdir)/build-aux/programs.am
 
-SUBDIRS = .
+EXTRA_DIST = README.md
 
-EXTRA_DIST = README.md 
+bin_PROGRAMS = mbspec-ir-dipole mbspec-ir-response mbspec-ir-spectrum
 
-AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/tools $(MKL_CFLAGS)
-
-bin_PROGRAMS = dipole \
-	       response \
-               spectrum
-
-dipole_SOURCES = dipole.cpp 
-dipole_LDADD = ../tools/libtools.a $(MKL_LIBS)
-dipole_DEPS = ../tools/libtools.a
-
-response_SOURCES = response.cpp 
-response_LDADD = ../tools/libtools.a $(MKL_LIBS)
-response_DEPS = ../tools/libtools.a
-
-spectrum_SOURCES = spectrum.cpp 
-spectrum_LDADD = ../tools/libtools.a $(MKL_LIBS)
-spectrum_DEPS = ../tools/libtools.a
+mbspec_ir_dipole_SOURCES = dipole.cpp
+mbspec_ir_dipole_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
+# The LTP2011 1B dipole surface inverts 3x3 rotations through LAPACKE (mat_tools).
+mbspec_ir_dipole_LDADD = $(LDADD) $(LAPACKE_LIBS)
+mbspec_ir_response_SOURCES = response.cpp
+mbspec_ir_spectrum_SOURCES = spectrum.cpp

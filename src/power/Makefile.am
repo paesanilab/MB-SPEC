@@ -1,18 +1,9 @@
-AM_CXXFLAGS = $(CXX_FLAGS) -std=c++11
+include $(top_srcdir)/build-aux/programs.am
 
-SUBDIRS = .
+EXTRA_DIST = README.md
 
-EXTRA_DIST = README.md 
+bin_PROGRAMS = mbspec-power-response mbspec-power-spectrum
 
-AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/tools $(MKL_CFLAGS)
-
-bin_PROGRAMS = response \
-               spectrum
-
-response_SOURCES = response.cpp 
-response_LDADD = ../tools/libtools.a $(MKL_LIBS)
-response_DEPS = ../tools/libtools.a
-
-spectrum_SOURCES = spectrum.cpp 
-spectrum_LDADD = ../tools/libtools.a $(MKL_LIBS)
-spectrum_DEPS = ../tools/libtools.a
+mbspec_power_response_SOURCES = response.cpp
+mbspec_power_response_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
+mbspec_power_spectrum_SOURCES = spectrum.cpp

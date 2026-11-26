@@ -2,16 +2,17 @@
 
 The infrared workflow calculates the total dipole time correlation and its absorption spectrum. It consists of three executables:
 
-1. dipole   : construct total dipole for each trajectory frame;
-2. response : calculate the total dipole autocorrelation function; and
-3. spectrum : Fourier transform the response and apply the IR normalization.
+1. `mbspec-ir-dipole` constructs the total dipole for each trajectory frame.
+2. `mbspec-ir-response` calculates the total dipole autocorrelation function.
+3. `mbspec-ir-spectrum` Fourier transforms the response and applies the IR normalization.
 
-Run the three stages in order:
+Copy [the IR template](../../json_template/ir.json) to your working directory as
+`ir.json`, set the trajectory parameters, and run the three stages in order.
 
 ```bash
-OMP_NUM_THREADS=4 ./dipole trajectory.lammpstrj mb-spec.json > dipole.dat
-./response dipole.dat mb-spec.json > response.dat
-./spectrum response.dat mb-spec.json > spectrum.dat
+OMP_NUM_THREADS=4 mbspec-ir-dipole trajectory.lammpstrj ir.json > dipole.dat
+mbspec-ir-response dipole.dat ir.json > response.dat
+mbspec-ir-spectrum response.dat ir.json > spectrum.dat
 ```
 
 ## Units
@@ -42,7 +43,7 @@ OMP_NUM_THREADS=4 ./dipole trajectory.lammpstrj mb-spec.json > dipole.dat
 ```jsonc
 {
   "INFRARED": {
-    "box": [0.0,19.65,0.0,19.65,0.0,19.65], // Cell bounds in Å; sets IR normalization volume
+    "box": [0.00, 19.66, 0.00, 19.66, 0.00, 19.66], // Cell bounds in Å; sets IR normalization volume
     "imcon": 2,                             // Cell convention: 1 cubic, 2 orthorhombic (default), 3 triclinic
     "dump_frequency": 0.004,                // Frame interval in ps
     "skip_initial_atoms": 0,                // Omit this many leading atom records per frame; default 0
@@ -84,7 +85,7 @@ input. Water atoms must be ordered O--H--H.
 
 ## Dipole moments
 
-With `DMS=false`, `dipole` reads externally supplied permanent and induced dipole moments:
+With `DMS=false`, `mbspec-ir-dipole` reads externally supplied permanent and induced dipole moments.
 
 | dipole_mb | Total dipole per frame | Contributions |
 |---|---|---|
@@ -95,7 +96,7 @@ With `DMS=false`, `dipole` reads externally supplied permanent and induced dipol
 | `1b+2b+nb` | $\mathbf M_{\mathrm{perm}}+\mathbf M_{\mathrm{ind}}+P-I$ | Permanent + induced; replace switched induced-dimer term with polynomial |
 
 
-With `DMS=true`, `dipole` evaluates the internal LTP2011 water surface:
+With `DMS=true`, `mbspec-ir-dipole` evaluates the internal LTP2011 water surface.
 
 | dipole_mb | Total dipole per frame | Contributions |
 |---|---|---|
@@ -191,7 +192,7 @@ correlations of the three Cartesian dipole components. The correlation
 describes how the total dipole remains correlated over a time separation $t$.
 Its Fourier transform resolves this temporal behavior into frequency components.
 
-For a trajectory containing $N$ equally spaced frames, `response` estimates
+For a trajectory containing $N$ equally spaced frames, `mbspec-ir-response` estimates
 this average using every available pair of frames separated by $k\Delta t$:
 
 $$

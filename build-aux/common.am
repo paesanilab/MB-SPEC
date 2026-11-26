@@ -1,0 +1,5 @@
+# Shared flags for the C++ library and spectroscopy programs.
+AM_CPPFLAGS = -I$(top_srcdir)/src/tools
+# Warning and sanitizer flags for every target. OpenMP and LAPACKE flags are
+# added only where they are used (see src/tools/Makefile.am and programs.am).
+MBSPEC_CXXFLAGS = $(WARN_CXXFLAGS) $(SANITIZE_CXXFLAGS)

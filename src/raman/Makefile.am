@@ -1,22 +1,10 @@
-SUBDIRS = .
+include $(top_srcdir)/build-aux/programs.am
 
-AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/tools $(MKL_CFLAGS)
-AM_CXXFLAGS = $(CXX_FLAGS) -std=c++11
+EXTRA_DIST = README.md
 
-bin_PROGRAMS = polarizability \
-	       response \
-	       spectrum
+bin_PROGRAMS = mbspec-raman-polarizability mbspec-raman-response mbspec-raman-spectrum
 
-EXTRA_DIST = README.md 
-
-polarizability_SOURCES = polarizability.cpp 
-polarizability_LDADD = ../tools/libtools.a $(MKL_LIBS)
-polarizability_DEPS = ../tools/libtools.a
-
-response_SOURCES = response.cpp 
-response_LDADD = ../tools/libtools.a $(MKL_LIBS)
-response_DEPS = ../tools/libtools.a
-
-spectrum_SOURCES = spectrum.cpp 
-spectrum_LDADD = ../tools/libtools.a $(MKL_LIBS)
-spectrum_DEPS = ../tools/libtools.a
+mbspec_raman_polarizability_SOURCES = polarizability.cpp
+mbspec_raman_polarizability_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
+mbspec_raman_response_SOURCES = response.cpp
+mbspec_raman_spectrum_SOURCES = spectrum.cpp

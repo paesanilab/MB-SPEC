@@ -3,16 +3,17 @@
 The Raman workflow calculates correlations of the total polarizability tensor
 and their reduced Raman spectra. It consists of three executables:
 
-1. `polarizability`: construct the total water polarizability tensor for each trajectory frame;
-2. `response`: calculate its isotropic or depolarized autocorrelation; and
-3. `spectrum`: Fourier transform the response and apply the current Raman frequency factor.
+1. `mbspec-raman-polarizability` constructs the total water polarizability tensor for each trajectory frame.
+2. `mbspec-raman-response` calculates its isotropic or depolarized autocorrelation.
+3. `mbspec-raman-spectrum` Fourier transforms the response and applies the Raman frequency factor.
 
-Run the stages in order:
+Copy [the Raman template](../../json_template/raman.json) to your working directory
+as `raman.json`, set the trajectory parameters, and run the stages in order.
 
 ```bash
-OMP_NUM_THREADS=4 ./polarizability trajectory.lammpstrj mb-spec.json > polarizability.dat
-./response polarizability.dat mb-spec.json > response.dat
-./spectrum response.dat mb-spec.json > spectrum.dat
+OMP_NUM_THREADS=4 mbspec-raman-polarizability trajectory.lammpstrj raman.json > polarizability.dat
+mbspec-raman-response polarizability.dat raman.json > response.dat
+mbspec-raman-spectrum response.dat raman.json > spectrum.dat
 ```
 
 ## Units
@@ -44,7 +45,7 @@ OMP_NUM_THREADS=4 ./polarizability trajectory.lammpstrj mb-spec.json > polarizab
 ```jsonc
 {
   "RAMAN": {
-    "box": [0.0,19.65,0.0,19.65,0.0,19.65],	// Cell bounds in Å; XYZ imaging; spectrum requires positive volume 
+    "box": [0.00, 19.66, 0.00, 19.66, 0.00, 19.66], // Cell bounds in Å; XYZ imaging; spectrum requires positive volume
     "imcon": 2,                                 // Cell convention: 1 cubic, 2 orthorhombic (default), 3 triclinic
     "dump_frequency": 0.004,                    // Frame interval in ps
     "skip_initial_atoms": 0,                    // Omit leading atom records; retain O–H–H triplets; default 0
@@ -70,16 +71,16 @@ Triclinic cells use nine matrix elements `[xx,xy,xz,yx,yy,yz,zx,zy,zz]`.
 
 ## Trajectory input
 
-`polarizability` accepts LAMMPS or an XYZ trajectory. For LAMMPS, the
+`mbspec-raman-polarizability` accepts LAMMPS or an XYZ trajectory. For LAMMPS, the
 reader identifies coordinates from the `ITEM: ATOMS` header and accepts exactly
 one complete triplet of `x y z`, `xu yu zu`, `xs ys zs`, or `xsu ysu zsu`.
 XYZ frames contain an atom count, one comment line,
 and atom-label/x/y/z rows; 
 Water atoms must be ordered O--H--H in every frame.
 
-The internal `polarizability` is specific to water. For other molecular
+The internal polarizability model is specific to water. For other molecular
 systems, supply a total symmetric polarizability tensor for each frame directly
-to `response`, then run `spectrum`. The external file must contain exactly seven
+to `mbspec-raman-response`, then run `mbspec-raman-spectrum`. The external file must contain exactly seven
 numeric columns per row, without a header:
 
 ```text
@@ -158,7 +159,9 @@ induction contribution, including two-body and higher-body terms.
 The full combination replaces the TTM4 monomer tensors with Avila tensors
 and adds the polynomial correction. The `1b+2b` mode includes the polynomial
 and isolated-pair induction, switching both to zero at the outer cutoff. It
-excludes higher-body induction. 
+excludes higher-body induction. This deliberately truncated approximation
+differs from the published MB-alpha two-body term in Eq. (2), which retains
+long-range induction [Medders and Paesani (2015), Section 2, Eq. (11)](https://doi.org/10.1021/ct501131j).
 
 ### Two-body switching
 
@@ -194,7 +197,7 @@ $$
 $$
 
 where $\mathbf I$ is the identity tensor. These quantities give the two
-correlations supported by `response`:
+correlations supported by `mbspec-raman-response`:
 
 $$
 C_{\mathrm{iso}}(t)=
@@ -208,7 +211,7 @@ The isotropic correlation tracks
 the scalar part of the polarizability; the depolarized correlation tracks
 its anisotropic part, which contributes to depolarized Raman scattering.
 
-For $N$ equally spaced frames, `response` estimates the equilibrium average
+For $N$ equally spaced frames, `mbspec-raman-response` estimates the equilibrium average
 using every available pair separated by $k\Delta t$:
 
 $$
@@ -331,9 +334,9 @@ implementation assumes the correlation has decayed to zero at the upper
 integration limit.
 
 Gaussian smoothing acts on the selected intensity, $I$ or $I_{\mathrm{BE}}$.
-The Gaussian is truncated at three standard deviations. 
-A positive `smoothing_fwhm_cm1` sets its full width at half maximum (FWHM) in cm⁻¹.
-For FWHM $w$ and wavenumber spacing
+A positive
+`smoothing_fwhm_cm1` sets its full width at half maximum (FWHM) in cm⁻¹;
+omission or zero disables it. For FWHM $w$ and wavenumber spacing
 $\Delta\widetilde\nu$, the kernel width and length are
 
 $$
@@ -346,6 +349,7 @@ g_j=\frac{\exp[-(j-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)]}
 {\sum_{m=0}^{K-1}\exp[-(m-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)]}.
 $$
 
+The Gaussian is truncated at three standard deviations.
 
 ## Scientific limitations
 
@@ -353,5 +357,5 @@ $$
 The `nb`, `1b+nb`, and `1b+2b+nb` modes evaluate $T$ using an internal TTM4 
 response that uses only orthorhombic cell lengths for imaging. These modes 
 lack Ewald treatment and have not been validated for periodic bulk simulations. 
-`polarizability` accepts triclinic cells (`imcon=3`) only for the internal `1b` and `1b+2b` modes.
+`mbspec-raman-polarizability` accepts triclinic cells (`imcon=3`) only for the internal `1b` and `1b+2b` modes.
 

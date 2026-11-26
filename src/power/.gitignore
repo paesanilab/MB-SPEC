@@ -1,6 +1,0 @@
-.deps
-*.o
-response
-spectrum
-Makefile
-Makefile.in

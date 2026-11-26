@@ -1,12 +1,16 @@
 # Power spectra with MB-SPEC
 
-The power workflow computes the autocorrelation of the total atomic velocity and transforms
+POWER computes the autocorrelation of the total atomic velocity and transforms
 it into a normalized spectrum. This collective observable includes cross terms
-between atoms.
+between atoms; it differs from a sum of per-atom velocity autocorrelations.
+
+Copy [the power template](../../json_template/power.json) to your working directory
+as `power.json`. Set the frame interval and skip count for your trajectory before
+running the two stages.
 
 ```bash
-./response trajectory.lammpstrj mb-spec.json > response.dat
-./spectrum response.dat mb-spec.json > spectrum.dat
+mbspec-power-response trajectory.lammpstrj power.json > response.dat
+mbspec-power-spectrum response.dat power.json > spectrum.dat
 ```
 
 ## Units
@@ -19,7 +23,10 @@ between atoms.
 | XYZ cell lengths | Å |
 | Frequency $\nu$, angular frequency $\omega$ | Hz and rad/s |
 | Wavenumber $\widetilde\nu$, smoothing FWHM | cm⁻¹; $\nu=c\widetilde\nu$ with $c$ in cm/s |
-| Intensity | Implemented normalized line shape |
+| Intensity | Implemented normalized line shape; not established as an absolute density of states |
+
+Uniform velocity rescaling cancels from the spectrum's normalization by $C(0)$.
+It does not cancel from the response file.
 
 ## Outputs
 
@@ -31,19 +38,22 @@ between atoms.
 
 ## JSON options
 
+Put all settings inside `POWER`.
+**Remove the `//` comments before saving this JSONC example as an input file.**
+
 ```jsonc
 {
   "POWER": {
-    "box": [0.0, 19.65, 0.0, 19.65, 0.0, 19.65], // Cell bounds in Å; unused by the velocity observable
+    "box": [0.00, 19.66, 0.00, 19.66, 0.00, 19.66], // Required for XYZ only, in Å; unused by the velocity observable
     "imcon": 2,                                  // XYZ cell convention: 1 cubic, 2 orthorhombic (default), 3 triclinic
-    "dump_frequency": 0.004,                     // Frame interval in ps
+    "dump_frequency": 0.004,                     // Required frame interval in ps
     "trajectory_duration_ps": 0.0,               // Duration read in ps; 0 reads all frames (default)
-    "int_max": 10.0,                             // Exclusive correlation lag limit in ps
+    "int_max": 10.0,                             // Required exclusive correlation lag limit in ps
     "skip_initial_atoms": 1,                     // Omit leading atom records; default 0; example omits the first atom
     "subtract_mean_velocity": false,             // Remove mean total velocity before correlation; default false
-    "spectrum_transform_time_ps": 10.0,          // Response duration transformed, in ps
+    "spectrum_transform_time_ps": 10.0,          // Required response duration transformed, in ps
     "tau": 0.0,                                  // Exponential damping time in ps; 0 disables it (default)
-    "smoothing_fwhm_cm1": 15.0                   // Gaussian spectral FWHM in cm⁻¹; 0 disables it
+    "smoothing_fwhm_cm1": 15.0                   // Gaussian spectral FWHM in cm⁻¹; omitted or 0 disables it
   }
 }
 ```
@@ -60,8 +70,8 @@ The power response reads LAMMPS atom-column names and requires native `vx`,
 and timestep records must be present.
 
 An XYZ velocity trajectory is selected only when its filename ends in lowercase
-`.xyz`. 
-Each frame has the standard atom-count and comment lines, followed by one row per atom:
+`.xyz`; an uppercase `.XYZ` suffix is not recognized as XYZ input. Each frame
+has the standard atom-count and comment lines, followed by one row per atom:
 
 ```text
 label vx vy vz
@@ -87,15 +97,17 @@ This unweighted collective correlation includes cross terms between atoms. It di
 
 ### Damping
 
-Damping suppresses long-time contributions and broadens spectral features. `tau = 0` disables damping. A positive `tau` multiplies a correlation by
+A positive `tau` multiplies a correlation by
 
 $$
 C_k\leftarrow C_k\exp\left(-\frac{k\Delta t}{\tau}\right).
 $$
 
+`tau = 0` disables damping. Damping suppresses long-time contributions and broadens spectral features.
+
 ### Transform and normalization
 
-The spectrum reader retains rows with $t\lt \mathrm{int\_max}$ and transforms the first $N_T=\lfloor T_{\mathrm{transform}}/\Delta t_{\mathrm{ps}}+10^{-10}\rfloor$ samples. Here $T_{\mathrm{transform}}$ is the JSON parameter `spectrum_transform_time_ps`. The cosine sum is
+The spectrum reader retains rows with $t\lt \mathrm{int\_max}$ and transforms the first $N_T=\lfloor T_{\mathrm{transform}}/\Delta t_{\mathrm{ps}}+10^{-10}\rfloor$ samples. Here $T_{\mathrm{transform}}$ is the JSON parameter `spectrum_transform_time_ps`. With $\Delta t=10^{-12}\Delta t_{\mathrm{ps}}$ in seconds and $c=2.99792458\times10^{10}$ cm/s, the cosine sum is
 
 $$
 D(f_n)=C_0+2\sum_{k=1}^{N_T-1}C_k
@@ -108,6 +120,9 @@ I_{\mathrm{code}}(\widetilde\nu_n)=\frac{2cD(c\widetilde\nu_n)}{C(0)}.
 $$
 
 The discrete sum has no $\Delta t$ factor. The output is therefore an implemented normalized line shape whose spectral-density normalization requires analytical validation; it is not established as an absolute vibrational density of states. The implementation requires $C(0)>0$ and has no temperature, volume, dielectric, Planck-constant, or quantum-correction prefactor. 
+
+The dimensionless $10^{-10}$ in the sample count prevents floating-point
+rounding just below an integer from dropping one sample.
 
 ### Gaussian smoothing
 

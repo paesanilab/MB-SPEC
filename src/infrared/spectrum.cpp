@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <sstream>
 
+#include "cli.h"
+#include "numeric_input.h"
 #include "system.h"
 #include "constants.h"
 #include "spectral_smoothing.h"
@@ -31,20 +33,17 @@ int main(int argc, char** argv)
     // Program setup and JSON configuration
     //----------------------------------------------------------------------------//
 
-    if (argc != 3) {
-        std::cerr << "usage: " << argv[0]
-                  << " <response.dat> <mb-spec.json>" << std::endl;
-        return EXIT_FAILURE;
+    const auto exit_code = mbspec::check_arguments(argc, argv, {"response.dat", "mb-spec.json"});
+
+    if (exit_code.has_value()) {
+        return *exit_code;
     }
+
+    const auto response_path = argv[1];
+    const auto config_path = argv[2];
 
     System sys;
-    sys.SetUpFromJson("INFRARED", argv[2]);
-
-    std::ifstream infile(argv[1]);
-    if (!infile) {
-        std::cerr << "Error: cannot open file " << argv[1] << "\n";
-        return EXIT_FAILURE;
-    }
+    sys.SetUpFromJson("INFRARED", config_path);
 
     double T = sys.GetTemperature();
     double volume = sys.GetBoxVolume();
@@ -100,40 +99,20 @@ int main(int argc, char** argv)
     // Response-function input and time-grid validation
     //----------------------------------------------------------------------------//
 
-    std::vector<double> time;
-    std::vector<double> corr;
-
-    double t(0);
-    double c(0);
-
-    while (infile >> t >> c) {
-        if (t >= max_int)
-            break;
-        time.push_back(t);
-        corr.push_back(c);
+    mbspec::ResponseTable response;
+    try {
+        response = mbspec::read_response(response_path, max_int, 9);
+    } catch (const std::exception& error) {
+        std::cerr << error.what() << '\n';
+        return EXIT_FAILURE;
     }
-
-    infile.close();
-
-    const size_t n_response = time.size();
+    auto& corr = response.values;
+    const size_t n_response = corr.size();
     if (n_response < 2) {
-        std::cerr << "response file must contain at least two time points" << std::endl;
+        std::cerr << "response file '" << response_path << "' must contain at least 2 time points below INFRARED.int_max\n";
         return EXIT_FAILURE;
     }
-
-    const double dt_ps = time[1] - time[0];
-    if (dt_ps <= 0.0) {
-        std::cerr << "response time values must be strictly increasing" << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    for (size_t i = 2; i < n_response; ++i) {
-        if (time[i] <= time[i - 1]) {
-            std::cerr << "response time values must be strictly increasing" << std::endl;
-            return EXIT_FAILURE;
-        }
-    }
-
+    const double dt_ps = response.interval;
     const double available_time_ps = n_response*dt_ps;
     if (transform_time_ps > available_time_ps + 1.0e-10*dt_ps) {
         std::cerr << "INFRARED.spectrum_transform_time_ps exceeds the available "

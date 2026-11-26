@@ -260,9 +260,13 @@ inline Table correlation(Table properties, bool subtract_mean, double unit = 1.0
 struct Suite {
     std::string name, section;
     fs::path work;
+    fs::path legacy_program_root;
+    fs::path installed_bin;
     size_t passed = 0, failed = 0, sequence = 0;
-    explicit Suite(std::string workflow, std::string config_section)
-        : name(std::move(workflow)), section(std::move(config_section)) {
+    explicit Suite(std::string workflow, std::string config_section, fs::path legacy_root = {},
+                   fs::path installed_programs = {})
+        : name(std::move(workflow)), section(std::move(config_section)),
+          legacy_program_root(std::move(legacy_root)), installed_bin(std::move(installed_programs)) {
         const auto run_id = std::chrono::system_clock::now().time_since_epoch().count();
         work = build_root / ".build" / "runs" /
                (name + "-" + std::to_string(getpid()) + "-" + std::to_string(run_id));
@@ -300,14 +304,40 @@ struct Suite {
     }
     fs::path run(const std::string& executable, const fs::path& input_path, const Json& config,
                  const std::string& expected_error = "", int threads = 1,
-                 const std::string& raw_config = "") {
-        auto directory = work / std::to_string(++sequence);
-        fs::create_directory(directory);
+                 const std::string& raw_config = "", const fs::path& working_directory = {}) {
+        const auto directory = working_directory.empty() ? work / std::to_string(++sequence)
+                                                         : working_directory;
+        fs::create_directories(directory);
         auto config_path = directory / "config.json";
         write(config_path, raw_config.empty() ? config.dump(2) : raw_config);
+        std::vector<std::string> arguments;
+        if (executable != "sfg/fresnel")
+            arguments.push_back(input_path.string());
+        arguments.push_back(config_path.string());
+        return run_arguments(executable, arguments, expected_error, directory, threads);
+    }
+    fs::path run_arguments(const std::string& executable, std::vector<std::string> arguments,
+                           const std::string& expected_error = "", fs::path directory = {},
+                           int threads = 1) {
+        if (directory.empty())
+            directory = work / std::to_string(++sequence);
+        fs::create_directories(directory);
         auto output = directory / "stdout.dat", log = directory / "stderr.log";
-        auto program = program_root / executable;
+        const fs::path stage = executable;
+        const auto workflow = stage.parent_path().string();
+        const auto installed_name = "mbspec-" + (workflow == "infrared" ? "ir" : workflow) +
+                                   "-" + stage.filename().string();
+        auto program = program_root / workflow / installed_name;
+        if (!legacy_program_root.empty())
+            program = legacy_program_root / stage;
+        if (!installed_bin.empty())
+            program = installed_bin / installed_name;
         require(fs::exists(program), "missing executable " + program.string());
+        arguments.insert(arguments.begin(), program.string());
+        std::vector<char*> argv;
+        for (auto& argument : arguments)
+            argv.push_back(argument.data());
+        argv.push_back(nullptr);
         pid_t child = fork();
         require(child >= 0, "fork failed");
         if (child == 0) {
@@ -322,12 +352,7 @@ struct Suite {
             setenv("OMP_NUM_THREADS", std::to_string(threads).c_str(), 1);
             setenv("OMP_DYNAMIC", "FALSE", 1);
             setenv("MKL_NUM_THREADS", "1", 1);
-            if (executable == "sfg/fresnel")
-                execl(program.c_str(), program.c_str(), config_path.c_str(),
-                      static_cast<char*>(nullptr));
-            else
-                execl(program.c_str(), program.c_str(), input_path.c_str(), config_path.c_str(),
-                      static_cast<char*>(nullptr));
+            execv(program.c_str(), argv.data());
             _exit(125);
         }
         int status = 0;
@@ -641,12 +666,10 @@ inline void regression_checks(Suite& suite) {
             for (const std::string component : {"xxz", "zzz", "xzx"}) {
                 const std::string source = entry.at("components").at(component);
                 require(actual_outputs.count(source), "component reference did not pass: " + source);
-                Table positive;
-                for (const auto& row : table(actual_outputs.at(source), 4))
-                    if (row[0] > 0)
-                        positive.push_back(row);
+                // Pass the full grid to verify that Fresnel skips zero wavenumber.
                 config[component + "_file"] =
-                    suite.fixture("fresnel-" + component + ".dat", serialize(positive)).string();
+                    suite.fixture("fresnel-" + component + ".dat",
+                                  contents(actual_outputs.at(source))).string();
             }
             for (const std::string key :
                  {"water_refractive_index_n_file", "water_refractive_index_k_file"}) {

@@ -1,21 +1,18 @@
 # Sum-frequency generation spectra with MB-SPEC
 
-The SFG workflow calculates a truncated dipole-polarizability cross-correlation function for water.
-It requires a water slab trajectory with the permanent and induced dipole moment columns.
+The SFG workflow calculates a truncated dipole-polarizability cross-correlation
+function for water. The input is a LAMMPS water slab trajectory with permanent
+and induced dipole columns.
 
-Run:
-
-```bash
-OMP_NUM_THREADS=4 ./response trajectory.lammpstrj sfg.json > response.dat
-./spectrum response.dat sfg.json > spectrum.dat
-```
-
-Optionally apply Fresnel factors after calculating the component spectra:
+Copy [the SFG template](../../json_template/sfg.json) to your working directory
+as `sfg.json` and set the trajectory parameters before running the workflow.
 
 ```bash
-./fresnel fresnel.json
+OMP_NUM_THREADS=4 mbspec-sfg-response trajectory.lammpstrj sfg.json > response.dat
+mbspec-sfg-spectrum response.dat sfg.json > spectrum.dat
 ```
 
+See [Fresnel post-processing](#fresnel-post-processing) for the optional optical step.
 
 ## Units
 
@@ -48,7 +45,7 @@ Optionally apply Fresnel factors after calculating the component spectra:
 ```jsonc
 {
   "SFG": {
-    "box": [0.0,24.79,0.0,24.79,0.0,100.0],      // Reference cell in Å; unused by current SFG stages
+    "box": [0.0, 24.7977, 0.0, 24.7977, 0.0, 100.0], // Reference cell in Å; unused by current SFG stages
     "imcon": 2,                                  // Cell convention: 1 cubic, 2 orthorhombic (default), 3 triclinic
     "dump_frequency": 0.004,                     // Frame interval in ps
     "skip_initial_atoms": 0,                     // Omit leading records; retain O–H–H triplets; default 0
@@ -83,7 +80,7 @@ Optionally apply Fresnel factors after calculating the component spectra:
 
 ## Trajectory input
 
-`response` accepts one LAMMPS dump trajectory.
+`mbspec-sfg-response` accepts one LAMMPS dump trajectory.
 The reader identifies fields from the `ITEM: ATOMS` header.
 It requires exactly one coordinate triplet of `x y z`, `xu yu zu`, `xs ys zs`, or `xsu ysu zsu`;
 scaled coordinates are converted with the LAMMPS box matrix and origin.
@@ -291,7 +288,7 @@ A_s(\nu)=\sum_{n=1}^{N_T-2}\widehat C_n\sin(2\pi\nu t_n).
 $$
 
 where $T = $ `spectrum_transform_time_ps`.
-For $K =$ `spectrum_num_wavenumbers`,
+The final otherwise eligible sample is excluded. For $K =$ `spectrum_num_wavenumbers`,
 
 $$
 \widetilde\nu_k=\frac{k\widetilde\nu_{\max}}{K-1},\qquad
@@ -312,6 +309,13 @@ $$
 
 When spectral smoothing is enabled, it is applied separately to the real and imaginary components before the squared magnitude is calculated. 
 The fourth output column equals the sum of squares of the reported components. 
+Fresnel post-processing reads the complex components and ignores the fourth column.
+
+The time step sets the independent physical frequency range through the Nyquist wavenumber.
+
+$$
+\widetilde\nu_{\mathrm{Nyquist}}=\frac1{2c\Delta t}.
+$$
 
 
 ### Gaussian smoothing
@@ -328,11 +332,11 @@ g_j=\frac{\exp\left[-(j-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}
 {\sum_{m=0}^{K-1}\exp\left[-(m-(K-1)/2)^2/(2\sigma_{\mathrm{grid}}^2)\right]}.
 $$
 
-The Gaussian is truncated at three standard deviations. 
+The Gaussian is truncated at three standard deviations. Only positive-frequency points contribute to the convolution, and the available weights are renormalized at each boundary. The shared smoothing routine sets the zero-frequency output to zero. The unsmoothed SFG signal is already zero at zero frequency. Smoothing a completed spectrum is distinct from damping its time correlation.
 
 ### Relation to the literature
 
-The resonant SFG expression  is
+The resonant SFG expression in Medders and Paesani [3, Eq. 1] is
 
 $$
 \mathrm{Im}\chi_{ijk}^{(2,R)}(\omega)=
@@ -340,14 +344,31 @@ $$
  e^{-i\omega t}\langle\alpha_{ij}(t)\mu_k(0)\rangle\right].
 $$
 
-The indices $i$, $j$, and $k$ refer to the sum-frequency, visible, and infrared polarizations, respectively. 
-MB-SPEC does not implement this absolute prefactor or an unrestricted total dipole–polarizability correlation. 
-There is no quantum correction, temperature prefactor, or absolute susceptibility conversion. 
+The indices $i$, $j$, and $k$ refer to the sum-frequency, visible, and infrared polarizations, respectively. MB-SPEC outputs a reduced, truncated response without a quantum correction, temperature prefactor, or absolute susceptibility conversion. The spectrum executable validates `SFG.temperature` and leaves it out of the numerical transform.
 
 ## Fresnel post-processing
 
 This optional optical step reads reduced complex component spectra and produces
 squared amplitudes for SSP, PSS, SPS, and PPP spectra.
+
+Make three copies of your SFG configuration named `sfg-xxz.json`,
+`sfg-zzz.json`, and `sfg-xzx.json`. In each copy, set `SFG.ijk` to the
+corresponding component and use the same wavenumber grid for all three spectra.
+The Fresnel program reports the file and row if a component's grid differs.
+Copy `fresnel.json` and `fresnel_factors/` from `src/sfg/` or the installed
+`$prefix/share/mb-spec/sfg/` directory into your working directory. The program
+resolves paths in `fresnel.json` from that working directory.
+
+```bash
+for ijk in xxz zzz xzx; do
+    mbspec-sfg-response trajectory.lammpstrj "sfg-$ijk.json" > "response-$ijk.dat"
+    mbspec-sfg-spectrum "response-$ijk.dat" "sfg-$ijk.json" > "$ijk.dat"
+done
+mbspec-sfg-fresnel fresnel.json
+```
+
+The example configuration writes `sfg_ssp.dat`, `sfg_pss.dat`, `sfg_sps.dat`,
+and `sfg_ppp.dat`.
 
 ### Fresnel JSON options
 
@@ -384,6 +405,10 @@ $$
 \widetilde\nu=\widetilde\nu_0-\Delta\widetilde\nu,
 \qquad\Delta\widetilde\nu=\mathrm{redshift\_cm1}.
 $$
+
+The calculation skips any row whose wavenumber after the shift is zero. With
+`redshift_cm1` set to `0.0`, the zero-wavenumber input row is skipped and the
+remaining wavenumbers are unchanged.
 
 Frequencies below are ordinary frequencies in GHz, with wavelengths in µm:
 

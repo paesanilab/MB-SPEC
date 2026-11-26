@@ -7,6 +7,7 @@
 #include <numeric>
 #include <sstream>
 
+#include "cli.h"
 #include "system.h"
 
 namespace {
@@ -161,13 +162,17 @@ int main(int argc, char **argv)
     // Program setup and response output
     //----------------------------------------------------------------------------//
 
-    if (argc != 3) {
-        std::cerr << "usage: " << argv[0] << " <dipole_file> <mb-spec.json>" << std::endl;
-        return EXIT_FAILURE;
+    const auto exit_code = mbspec::check_arguments(argc, argv, {"dipole_file", "mb-spec.json"});
+
+    if (exit_code.has_value()) {
+        return *exit_code;
     }
 
+    const auto dipole_path = argv[1];
+    const auto config_path = argv[2];
+
     System sys;
-    sys.SetUpFromJson("INFRARED", argv[argc - 1]);
+    sys.SetUpFromJson("INFRARED", config_path);
 
     double int_max(0);
     {
@@ -189,7 +194,7 @@ int main(int argc, char **argv)
     std::vector<double> autocorrelation;
     double dt = 0.0;
 
-    do_autocorr(argv[1], int_max, trajectory_duration_ps,
+    do_autocorr(dipole_path, int_max, trajectory_duration_ps,
                 subtract_mean_dipole, autocorrelation, dt);
 
     // Output columns are lag time [ps] and C(t) [(C m)^2].

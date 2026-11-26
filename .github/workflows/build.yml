@@ -1,0 +1,237 @@
+name: build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: ${{ matrix.cxx }} / generic LAPACKE
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cxx: g++
+            packages: ""
+          - cxx: clang++-21
+            packages: clang-21 libomp-21-dev
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake make pkgconf liblapacke-dev ${{ matrix.packages }}
+      - name: Bootstrap
+        run: autoreconf -fi
+      - name: Configure
+        run: ./configure CXX=${{ matrix.cxx }} --enable-werror
+      # The GCC distribution check builds, tests, and installs the extracted archive.
+      - name: Build
+        if: matrix.cxx != 'g++'
+        run: make -j"$(nproc)"
+      - name: Test
+        if: matrix.cxx != 'g++'
+        run: make -j"$(nproc)" check
+      - name: Install into the build directory
+        if: matrix.cxx != 'g++'
+        run: |
+          make install
+          src/unittests/check-historical --installed-prefix "$PWD"
+      - name: Distribution check
+        if: matrix.cxx == 'g++'
+        run: make -j"$(nproc)" distcheck DISTCHECK_CONFIGURE_FLAGS="CXX=g++ --enable-werror"
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-${{ matrix.cxx }}
+          retention-days: 7
+          include-hidden-files: true
+          path: |
+            config.log
+            src/tools/*.log
+            src/unittests/*.log
+            src/unittests/.build/runs/**/stderr.log
+            src/unittests/.build/runs/**/stdout.dat
+            mb-spec-*/_build/sub/config.log
+            mb-spec-*/_build/sub/src/tools/*.log
+            mb-spec-*/_build/sub/src/unittests/*.log
+            mb-spec-*/_build/sub/src/unittests/.build/runs/**/stderr.log
+
+  sanitizers:
+    name: g++ / ASan + UBSan
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake make pkgconf liblapacke-dev
+      - name: Bootstrap
+        run: autoreconf -fi
+      - name: Configure
+        run: ./configure CXX=g++ --enable-werror --enable-sanitizers
+      - name: Build
+        run: make -j"$(nproc)"
+      - name: Test
+        env:
+          UBSAN_OPTIONS: print_stacktrace=1
+        run: make -j"$(nproc)" check
+      - name: Install into the build directory
+        run: make install
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-sanitizers
+          retention-days: 7
+          include-hidden-files: true
+          path: |
+            config.log
+            src/tools/*.log
+            src/unittests/*.log
+            src/unittests/.build/runs/**/stderr.log
+
+  mkl:
+    name: g++ / Intel MKL
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    env:
+      MKLROOT: /opt/intel/oneapi/mkl/2026.2
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install dependencies
+        run: sh .github/install-mkl.sh autoconf automake make pkgconf intel-oneapi-mkl-core-devel-2026.2
+      - name: Bootstrap
+        run: autoreconf -fi
+      - name: Reject an incompatible LAPACKE ABI
+        run: |
+          export LD_LIBRARY_PATH="$MKLROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          test -f "$MKLROOT/lib/libmkl_intel_ilp64.so"
+          probe=$(mktemp -d)
+          cd "$probe"
+          if "$GITHUB_WORKSPACE/configure" CXX=g++ --with-lapack=mkl \
+            LAPACKE_CFLAGS="-I$MKLROOT/include" \
+            LAPACKE_LIBS="-L$MKLROOT/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl" \
+            > probe.log 2>&1; then
+            cat probe.log
+            exit 1
+          fi
+          cat probe.log
+          grep -F 'the LAPACKE ABI check failed' probe.log
+          sed -n '/checking for LP64 mkl LAPACKE/,$p' config.log | grep -F 'program exited with status 1'
+      - name: Configure, build, test and install
+        run: |
+          export PKG_CONFIG_PATH="$MKLROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+          export LD_LIBRARY_PATH="$MKLROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          ./configure CXX=g++ --with-lapack=mkl --enable-werror
+          make -j"$(nproc)"
+          make -j"$(nproc)" check
+          make install
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-mkl
+          retention-days: 7
+          include-hidden-files: true
+          path: |
+            config.log
+            src/tools/*.log
+            src/unittests/*.log
+            src/unittests/.build/runs/**/stderr.log
+
+  reference-check:
+    name: Historical reference comparison
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    env:
+      MASTER_COMMIT: c516736c3946166e0ee81b2198854a67da660c99
+      CXX: clang++-21
+      LLVM_VERSION: '1:21.1.8-6ubuntu1'
+      MKL_VERSION: '2026.2.1-11'
+      MKLROOT: /opt/intel/oneapi/mkl/2026.2
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.MASTER_COMMIT }}
+          path: historical-master
+          persist-credentials: false
+      - name: Install dependencies
+        run: |
+          sh .github/install-mkl.sh autoconf automake make libgsl-dev \
+            "clang-21=$LLVM_VERSION" "libomp-21-dev=$LLVM_VERSION" \
+            "intel-oneapi-mkl-core-2026.2=$MKL_VERSION" \
+            "intel-oneapi-mkl-core-devel-2026.2=$MKL_VERSION" \
+            "intel-oneapi-mkl-classic-include-2026.2=$MKL_VERSION"
+      - name: Build and check historical master
+        run: |
+          export LD_LIBRARY_PATH="$MKLROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          sh src/unittests/build-historical.sh historical-master
+          autoreconf -fi
+          ./configure --with-lapack=mkl --enable-werror
+          make -C src/unittests check-historical
+          src/unittests/check-historical historical-master/src
+          reference_work=$(mktemp -d)
+          src/unittests/check-historical --export-references historical-master/src "$reference_work/references"
+          src/unittests/check-historical --export-references historical-master/src "$reference_work/repeated-references"
+          diff -r "$reference_work/references" "$reference_work/repeated-references"
+          # The full-precision Fresnel tables use the numerical comparison above across hosts.
+          diff -r -x PROVENANCE -x 'fresnel-*.dat' src/unittests/historical/references "$reference_work/references"
+      - name: Upload reference diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-reference-check
+          retention-days: 7
+          include-hidden-files: true
+          path: |
+            config.log
+            historical-master/config.log
+            src/unittests/.build/runs/**/stderr.log
+            src/unittests/.build/runs/**/stdout.dat
+
+  required:
+    name: MB-SPEC CI
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    needs: [build, sanitizers, mkl, reference-check]
+    if: ${{ always() }}
+    permissions: {}
+    steps:
+      - name: Check required job results
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          SANITIZERS_RESULT: ${{ needs.sanitizers.result }}
+          MKL_RESULT: ${{ needs.mkl.result }}
+          REFERENCE_RESULT: ${{ needs['reference-check'].result }}
+        run: |
+          printf 'Generic LAPACKE: %s\nSanitizers: %s\nMKL: %s\nHistorical references: %s\n' \
+            "$BUILD_RESULT" "$SANITIZERS_RESULT" "$MKL_RESULT" "$REFERENCE_RESULT"
+          [[ "$BUILD_RESULT" == success && "$SANITIZERS_RESULT" == success &&
+             "$MKL_RESULT" == success && "$REFERENCE_RESULT" == success ]]

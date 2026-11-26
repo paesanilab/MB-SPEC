@@ -1,23 +1,21 @@
-SUBDIRS = .
+include $(top_srcdir)/build-aux/programs.am
 
-AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/tools $(MKL_CFLAGS)
+EXTRA_DIST = README.md
 
-bin_PROGRAMS = response \
-	       spectrum \
-	       fresnel
+bin_PROGRAMS = mbspec-sfg-response mbspec-sfg-spectrum mbspec-sfg-fresnel
 
-EXTRA_DIST = \
-    README.md \
+mbspec_sfg_response_SOURCES = response.cpp
+mbspec_sfg_response_CXXFLAGS = $(AM_CXXFLAGS) $(OPENMP_CXXFLAGS)
+mbspec_sfg_spectrum_SOURCES = spectrum.cpp
+
+# fresnel is self-contained and does not need libtools or LAPACKE.
+mbspec_sfg_fresnel_SOURCES = fresnel.cpp
+mbspec_sfg_fresnel_LDADD =
+
+# Example Fresnel configuration and water refractive-index tables, installed
+# to $(pkgdatadir)/sfg/.
+sfgdatadir = $(pkgdatadir)/sfg
+nobase_dist_sfgdata_DATA = \
     fresnel.json \
     fresnel_factors/refractive_index_water_k.txt \
     fresnel_factors/refractive_index_water_n.txt
-
-response_SOURCES = response.cpp 
-response_LDADD = ../tools/libtools.a $(MKL_LIBS)
-response_DEPS = ../tools/libtools.a
-
-spectrum_SOURCES = spectrum.cpp 
-spectrum_LDADD = ../tools/libtools.a $(MKL_LIBS)
-spectrum_DEPS = ../tools/libtools.a
-
-fresnel_SOURCES = fresnel.cpp

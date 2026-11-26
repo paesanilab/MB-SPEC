@@ -62,8 +62,8 @@ At large separation, the exponential terms vanish and the tensor reduces to
 the usual point-dipole interaction. At short separation, damping suppresses
 the singular behavior. These expressions use the model's electrostatic units;
 with distances in Å and site polarizabilities in Å³, the tensor has units of
-Å⁻³. See `smear2` in [ttm4-smear.cpp](tools/ttm4-smear.cpp) and the tensor
-construction in [ttm4-dip.cpp](tools/ttm4-dip.cpp).
+Å⁻³. See `smear2` in [ttm4-smear.cpp](ttm4-smear.cpp) and the tensor
+construction in [ttm4-dip.cpp](ttm4-dip.cpp).
 
 The total dipole is
 
@@ -76,7 +76,7 @@ $$
 `ttm4_es::dip` returns permanent plus
 induced dipoles, whereas `dipind` and the separate `ttm4_dip` routine return
 only the induced contribution. Dipole outputs are in Debye. See
-[ttm4-es.cpp](tools/ttm4-es.cpp) and [ttm4-dip.cpp](tools/ttm4-dip.cpp).
+[ttm4-es.cpp](ttm4-es.cpp) and [ttm4-dip.cpp](ttm4-dip.cpp).
 
 ## Polarizability calculation
 
@@ -110,7 +110,7 @@ where $\mathbf e_b$ is the unit vector along Cartesian direction $b$.
 Polarizability therefore follows from the same coupled dipole response.
 MB-SPEC evaluates it analytically from the polarization matrix. It does not
 perform separate finite-field calculations. See `ttm4_es::ptensor` in
-[ttm4-es.cpp](tools/ttm4-es.cpp).
+[ttm4-es.cpp](ttm4-es.cpp).
 
 The site parameters are
 
@@ -146,8 +146,8 @@ $$
 
 This subtraction prevents counting both the TTM4 and Avila monomer
 polarizabilities. The nonadditive term includes two-body induction as well as
-higher-body effects. See [polarizability.cpp](raman/polarizability.cpp) and
-[alpha-ttm4.cpp](tools/alpha-ttm4.cpp).
+higher-body effects. See [polarizability.cpp](../raman/polarizability.cpp) and
+[alpha-ttm4.cpp](alpha-ttm4.cpp).
 
 The explicit short-range polarizability correction is added on top of
 induction, whereas the MB-mu dipole construction replaces the corresponding
